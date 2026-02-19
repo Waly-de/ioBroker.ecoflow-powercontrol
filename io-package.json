@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.1",
+    "version": "0.1.2",
     "news": {
+      "0.1.2": {
+        "en": "Fix admin UI: replace header-type with staticText, use panels for reliable conditional display",
+        "de": "Admin-UI repariert: header-Typ durch staticText ersetzt, Panels für zuverlässige bedingte Anzeige"
+      },
       "0.1.1": {
         "en": "Fix admin UI: add i18n support and correct item key format so table Add buttons work",
         "de": "Admin-UI repariert: i18n aktiviert und Item-Keys korrigiert, Tabellen-Hinzufügen-Buttons funktionieren jetzt"

@@ -37,6 +37,7 @@
 
   "ec_header": "Überschussladung (z.B. Heizstab, Wärmepumpe)",
   "ec_enabled": "Überschussladung aktivieren",
+  "ec_panel_label": "Überschussladung – Einstellungen",
   "ec_panel": "Überschussladung – Einstellungen",
   "ec_powerstateid": "Leistungs-State (schreiben, W)",
   "ec_batsocstateid": "Akku-SOC-State (% oder leer lassen)",

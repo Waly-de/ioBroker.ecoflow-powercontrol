@@ -37,6 +37,7 @@
 
   "ec_header": "Excess Charge (e.g. heating rod, heat pump)",
   "ec_enabled": "Enable excess charging",
+  "ec_panel_label": "Excess Charge – Settings",
   "ec_panel": "Excess Charge – Settings",
   "ec_powerstateid": "Power State (write, W)",
   "ec_batsocstateid": "Battery SOC State (% or leave empty)",
