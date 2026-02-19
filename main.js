@@ -925,72 +925,21 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
-        const preferredCandidates = [
-            runtimeCfg?.regulation?.smartmeterStateId,
-            runtimeCfg?.['regulation.smartmeterStateId'],
-            nativeCfg?.regulation?.smartmeterStateId,
-            nativeCfg?.['regulation.smartmeterStateId'],
-            mergedCfg?.regulation?.smartmeterStateId
-        ]
-            .map(value => this._normalizeStateIdInput(value))
-            .filter(Boolean);
+        const selected = this._normalizeStateIdInput(
+            nativeCfg?.regulation?.smartmeterStateId ||
+            nativeCfg?.['regulation.smartmeterStateId'] ||
+            runtimeCfg?.regulation?.smartmeterStateId ||
+            runtimeCfg?.['regulation.smartmeterStateId'] ||
+            mergedCfg?.regulation?.smartmeterStateId ||
+            ''
+        );
 
-        if (preferredCandidates.length > 0) {
-            const selected = preferredCandidates[0];
-            this.log.info(`Smartmeter preferred key selected: ${selected}`);
-            return selected;
+        if (selected) {
+            this.log.info(`Smartmeter strict-config selected: ${selected}`);
+        } else {
+            this.log.warn('Smartmeter strict-config selected: empty (field regulation.smartmeterStateId).');
         }
-
-        const rawSources = {
-            'runtime.SmartmeterID': runtimeCfg?.SmartmeterID,
-            'runtime.SmartmeterId': runtimeCfg?.SmartmeterId,
-            'runtime.smartmeterID': runtimeCfg?.smartmeterID,
-            'runtime.smartmeterId': runtimeCfg?.smartmeterId,
-            'native.SmartmeterID': nativeCfg?.SmartmeterID,
-            'native.SmartmeterId': nativeCfg?.SmartmeterId,
-            'native.smartmeterID': nativeCfg?.smartmeterID,
-            'native.smartmeterId': nativeCfg?.smartmeterId
-        };
-
-        for (const [source, raw] of Object.entries(rawSources)) {
-            if (raw !== undefined && raw !== null && String(raw).trim() !== '') {
-                this.log.info(`Smartmeter source candidate ${source}='${String(raw)}'`);
-            }
-        }
-
-        const candidatesRaw = Object.values(rawSources);
-
-        const candidates = [];
-        for (const raw of candidatesRaw) {
-            const id = this._normalizeStateIdInput(raw);
-            if (!id) continue;
-            if (!candidates.includes(id)) candidates.push(id);
-        }
-
-        if (!candidates.length) {
-            this.log.warn('Smartmeter resolution: no candidates found in legacy runtime/native config either.');
-            return '';
-        }
-
-        let bestId = candidates[0];
-        let bestTs = -1;
-
-        for (const id of candidates) {
-            try {
-                const state = await this.getForeignStateAsync(id);
-                const ts = Number(state?.ts) || 0;
-                this.log.info(`Smartmeter candidate check: ${id} ts=${ts}`);
-                if (ts > bestTs) {
-                    bestTs = ts;
-                    bestId = id;
-                }
-            } catch (err) {
-                this.log.debug(`Smartmeter candidate read failed for ${id}: ${err.message}`);
-            }
-        }
-
-        this.log.info(`Smartmeter candidate selected: ${bestId} (ts=${bestTs})`);
-        return bestId;
+        return selected;
     }
 
     async _startEcoflowMqttNonBlocking() {

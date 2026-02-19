@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.35",
+    "version": "0.1.36",
     "news": {
+      "0.1.36": {
+        "en": "Enforce strict smartmeter source: only regulation.smartmeterStateId from adapter config is used; legacy SmartmeterID keys are ignored",
+        "de": "Strikte Smartmeter-Quelle erzwungen: Es wird nur regulation.smartmeterStateId aus der Adapter-Konfiguration verwendet; Legacy-SmartmeterID-Keys werden ignoriert"
+      },
       "0.1.35": {
         "en": "Fix smartmeter source priority: always prefer regulation.smartmeterStateId from admin config; use legacy SmartmeterID keys only as fallback",
         "de": "Priorität der Smartmeter-Quelle korrigiert: immer regulation.smartmeterStateId aus der Admin-Konfiguration bevorzugen; Legacy-SmartmeterID-Keys nur noch als Fallback"
