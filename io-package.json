@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.22",
+    "version": "0.1.23",
     "news": {
+      "0.1.23": {
+        "en": "Improve legacy import payload for multiline scripts, add tolerant SmartmeterID mapping, and initialize realPower at startup from smartmeter",
+        "de": "Legacy-Import-Payload für mehrzeilige Skripte verbessert, SmartmeterID-Mapping toleranter gemacht und realPower beim Start direkt vom Smartmeter initialisiert"
+      },
       "0.1.22": {
         "en": "Enable common.messagebox so admin sendTo commands are delivered to adapter onMessage",
         "de": "common.messagebox aktiviert, damit Admin-sendTo-Kommandos im Adapter über onMessage ankommen"

@@ -142,6 +142,14 @@ class EcoflowPowerControl extends utils.Adapter {
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         await this._subscribeForeignStates(cfg);
 
+        if (cfg?.regulation?.smartmeterStateId) {
+            this.log.info(`Configured smartmeter state: ${cfg.regulation.smartmeterStateId}`);
+        } else {
+            this.log.warn('No smartmeter state configured (regulation.smartmeterStateId is empty).');
+        }
+
+        await this._initializeRealPowerFromSmartmeter(cfg);
+
         // ── 8. Ensure history logging for regulation.realPower
         try {
             await this.regulation.ensureHistoryLogging();
@@ -342,7 +350,7 @@ class EcoflowPowerControl extends utils.Adapter {
             }
 
             if (obj.command === 'importOldScriptSettings') {
-                const script = String(message.script || '').trim();
+                const script = String(message.script || this.config?.ecoflow?.legacyScriptImport || '').trim();
                 if (!script) {
                     throw new Error('No script content provided. Please paste the old script first.');
                 }
@@ -539,7 +547,14 @@ class EcoflowPowerControl extends utils.Adapter {
             : null;
         if (devices) patch.ecoflow.devices = devices;
 
-        if (oldCfg.SmartmeterID !== undefined) patch.regulation.smartmeterStateId = String(oldCfg.SmartmeterID || '');
+        const smartmeterId = [
+            oldCfg.SmartmeterID,
+            oldCfg.SmartmeterId,
+            oldCfg.smartmeterID,
+            oldCfg.smartmeterId,
+            oldCfg.smartmeterStateId
+        ].find(value => value !== undefined && value !== null && String(value).trim() !== '');
+        if (smartmeterId !== undefined) patch.regulation.smartmeterStateId = String(smartmeterId || '').trim();
         if (oldCfg.SmartmeterTimeoutMin !== undefined) patch.regulation.smartmeterTimeoutMin = toNumber(oldCfg.SmartmeterTimeoutMin, 4);
         if (oldCfg.SmartmeterFallbackPower !== undefined) patch.regulation.smartmeterFallbackPower = toNumber(oldCfg.SmartmeterFallbackPower, 150);
         if (oldCfg.RegulationIntervalSec !== undefined) patch.regulation.intervalSec = toNumber(oldCfg.RegulationIntervalSec, 15);
@@ -916,6 +931,25 @@ class EcoflowPowerControl extends utils.Adapter {
             },
             native: {}
         });
+    }
+
+    async _initializeRealPowerFromSmartmeter(cfg) {
+        const smartmeterStateId = String(cfg?.regulation?.smartmeterStateId || '').trim();
+        if (!smartmeterStateId || !this.regulation) return;
+
+        try {
+            const smartmeterState = await this.getForeignStateAsync(smartmeterStateId);
+            if (!smartmeterState) {
+                this.log.warn(`Smartmeter state not found at startup: ${smartmeterStateId}`);
+                return;
+            }
+
+            const gridPower = Number(smartmeterState.val) || 0;
+            await this.regulation.updateRealPower(gridPower);
+            this.log.info(`Initial realPower update done from smartmeter (${smartmeterStateId}=${gridPower}).`);
+        } catch (err) {
+            this.log.warn(`Initial smartmeter read failed (${smartmeterStateId}): ${err.message}`);
+        }
     }
 
     async _runTestConnectionFromState(rawPayload) {

@@ -555,7 +555,9 @@
           "type": "sendTo",
           "label": "ecoflow_import_button",
           "command": "importOldScriptSettings",
-          "jsonData": "{\"script\":\"${data.ecoflow.legacyScriptImport}\"}",
+          "data": {
+            "script": "${data.ecoflow.legacyScriptImport}"
+          },
           "showProcess": true,
           "result": {
             "import_ok": "ecoflow_import_success"
