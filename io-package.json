@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.27",
+    "version": "0.1.28",
     "news": {
+      "0.1.28": {
+        "en": "Guard foreign state subscriptions with object checks and timeout to prevent startup blocking; add subscription phase logs",
+        "de": "Foreign-State-Subscriptions mit Objekt-Checks und Timeout abgesichert, um Start-Blockaden zu vermeiden; zusätzliche Logs für die Subscription-Phase ergänzt"
+      },
       "0.1.27": {
         "en": "Add extensive smartmeter diagnostics (raw/normalized ID, object/state checks, watcher ticks, realPower source and write logs)",
         "de": "Umfangreiche Smartmeter-Diagnose ergänzt (raw/normalisierte ID, Objekt/State-Checks, Watcher-Ticks sowie realPower-Quelle und Schreib-Logs)"

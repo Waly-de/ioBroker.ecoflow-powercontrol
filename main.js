@@ -150,7 +150,9 @@ class EcoflowPowerControl extends utils.Adapter {
         await this.subscribeStatesAsync('commands.resetAllSettings');
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
+        this.log.info('Starting foreign state subscriptions...');
         await this._subscribeForeignStates(cfg);
+        this.log.info('Foreign state subscriptions finished.');
 
         await this._logSmartmeterDiagnostics(cfg, 'startup-after-subscribe');
 
@@ -1360,11 +1362,26 @@ class EcoflowPowerControl extends utils.Adapter {
     // ──────────────────────────────────────────────────────────── foreign subscriptions
 
     async _subscribeForeignStates(cfg) {
+        const subscribeWithTimeout = async (id, timeoutMs = 4000) => {
+            return Promise.race([
+                this.subscribeForeignStatesAsync(id),
+                new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs);
+                })
+            ]);
+        };
+
         const subscribe = async id => {
             const normalizedId = this._normalizeStateIdInput(id);
             if (!normalizedId || this.foreignSubscriptions.has(normalizedId)) return;
             try {
-                await this.subscribeForeignStatesAsync(normalizedId);
+                const obj = await this.getForeignObjectAsync(normalizedId);
+                if (!obj) {
+                    this.log.warn(`Foreign state does not exist (skip subscribe): ${normalizedId}`);
+                    return;
+                }
+
+                await subscribeWithTimeout(normalizedId, 4000);
                 this.foreignSubscriptions.add(normalizedId);
                 this.log.info(`Subscribed to foreign state: ${normalizedId}`);
             } catch (e) {
