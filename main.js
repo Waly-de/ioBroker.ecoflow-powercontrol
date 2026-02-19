@@ -73,7 +73,18 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         // ── 4. Start EcoFlow MQTT (optional)
-        if (cfg.ecoflow && cfg.ecoflow.enabled && cfg.ecoflow.email && cfg.ecoflow.password) {
+        const ecoflowEnabledFlag = !!cfg?.ecoflow?.enabled;
+        const ecoflowHasEmail = !!(cfg?.ecoflow?.email && String(cfg.ecoflow.email).trim());
+        const ecoflowHasPassword = !!(cfg?.ecoflow?.password && String(cfg.ecoflow.password).trim());
+        const ecoflowDevices = Array.isArray(cfg?.ecoflow?.devices) ? cfg.ecoflow.devices.length : 0;
+        const shouldStartEcoflow = (ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword) || (!ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword);
+
+        this.log.warn(`EcoFlow config at startup: enabled=${ecoflowEnabledFlag}, email=${ecoflowHasEmail ? 'set' : 'missing'}, password=${ecoflowHasPassword ? 'set' : 'missing'}, devices=${ecoflowDevices}`);
+
+        if (shouldStartEcoflow) {
+            if (!ecoflowEnabledFlag) {
+                this.log.warn('EcoFlow MQTT auto-enabled because credentials are present, although checkbox is currently disabled.');
+            }
             this.log.info(`EcoFlow MQTT is enabled (devices: ${(cfg.ecoflow.devices || []).length}). Starting connection...`);
             this.ecoflowMqtt = new EcoflowMqtt(this);
             await this.ecoflowMqtt.start();

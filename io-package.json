@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.9",
+    "version": "0.1.10",
     "news": {
+      "0.1.10": {
+        "en": "Add startup diagnostics for EcoFlow config and auto-enable fallback when credentials are present",
+        "de": "Startup-Diagnose für EcoFlow-Konfiguration ergänzt und Auto-Enable-Fallback bei vorhandenen Zugangsdaten aktiviert"
+      },
       "0.1.9": {
         "en": "Improve EcoFlow connect reliability with MQTT variant probing and explicit system-log traces for test/import commands",
         "de": "EcoFlow-Verbindungszuverlässigkeit verbessert durch MQTT-Varianten-Probing und explizite System-Logs für Test/Import-Befehle"
