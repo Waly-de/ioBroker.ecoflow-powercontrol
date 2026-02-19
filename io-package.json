@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.31",
+    "version": "0.1.32",
     "news": {
+      "0.1.32": {
+        "en": "Run own/foreign subscriptions in background, refresh regulation.enabled directly in loop, and add history setup timeout guard to keep startup non-blocking",
+        "de": "Eigene/fremde Subscriptions im Hintergrund ausgeführt, regulation.enabled direkt in der Schleife aktualisiert und History-Setup mit Timeout abgesichert, damit Startup nicht blockiert"
+      },
       "0.1.31": {
         "en": "Guard own-state subscriptions with per-state timeout and continue startup to avoid stalls at subscribe own states",
         "de": "Eigene State-Subscriptions mit Timeout pro State abgesichert und Startup-Fortsetzung erzwungen, um Hänger bei 'subscribe own states' zu vermeiden"

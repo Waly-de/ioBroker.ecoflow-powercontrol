@@ -159,18 +159,24 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 6. Subscribe to own states
         this.log.info('onReady step: subscribe own states (begin)');
-        await this._subscribeOwnStatesSafe([
+        this._subscribeOwnStatesSafe([
             'regulation.enabled',
             'commands.testConnection',
             'commands.importLegacyScript',
             'commands.resetAllSettings'
-        ]);
-        this.log.info('onReady step: subscribe own states (done)');
+        ]).then(() => {
+            this.log.info('onReady step: subscribe own states (done)');
+        }).catch(err => {
+            this.log.warn(`onReady step: subscribe own states (background error): ${err.message}`);
+        });
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         this.log.info('Starting foreign state subscriptions...');
-        await this._subscribeForeignStates(cfg);
-        this.log.info('Foreign state subscriptions finished.');
+        this._subscribeForeignStates(cfg).then(() => {
+            this.log.info('Foreign state subscriptions finished.');
+        }).catch(err => {
+            this.log.warn(`Foreign state subscriptions background error: ${err.message}`);
+        });
 
         await this._logSmartmeterDiagnostics(cfg, 'startup-after-subscribe');
 
