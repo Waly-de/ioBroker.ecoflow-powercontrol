@@ -498,7 +498,7 @@
         "efEnabled": {
           "type": "checkbox",
           "label": "ecoflow_enabled",
-          "attr": "ecoflow.enabled",
+          "attr": "efEnabled",
           "default": false
         },
         "efCredentialsHeader": {
@@ -508,17 +508,17 @@
         "efEmail": {
           "type": "text",
           "label": "ecoflow_email",
-          "attr": "ecoflow.email"
+          "attr": "efEmail"
         },
         "efPassword": {
           "type": "password",
           "label": "ecoflow_password",
-          "attr": "ecoflow.password"
+          "attr": "efPassword"
         },
         "efReconnectMin": {
           "type": "number",
           "label": "ecoflow_reconnectmin",
-          "attr": "ecoflow.reconnectMin",
+          "attr": "efReconnectMin",
           "default": 30
         },
         "efTestConnection": {
@@ -526,9 +526,9 @@
           "label": "ecoflow_test_connection",
           "id": "ecoflow-powercontrol.%INSTANCE%.commands.testConnection",
           "ack": false,
-          "val": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
+          "val": "{\"email\":\"${data.efEmail}\",\"password\":\"${data.efPassword}\",\"reconnectMin\":\"${data.efReconnectMin}\"}",
           "variant": "contained",
-          "okText": "ecoflow_test_triggered"
+          "okText": "ecoflow_test_ok"
         },
         "efTestHint": {
           "type": "staticText",
@@ -541,7 +541,7 @@
         "efLegacyScriptImport": {
           "type": "text",
           "label": "ecoflow_import_paste",
-          "attr": "ecoflow.legacyScriptImport",
+          "attr": "efLegacyScriptImport",
           "minRows": 8,
           "maxRows": 20
         },
@@ -550,9 +550,18 @@
           "label": "ecoflow_import_button",
           "id": "ecoflow-powercontrol.%INSTANCE%.commands.importLegacyScript",
           "ack": false,
-          "val": "${data.ecoflow.legacyScriptImport}",
+          "val": "${data.efLegacyScriptImport}",
           "variant": "contained",
-          "okText": "ecoflow_import_triggered"
+          "okText": "ecoflow_import_ok"
+        },
+        "efResetAll": {
+          "type": "setState",
+          "label": "ecoflow_reset_button",
+          "id": "ecoflow-powercontrol.%INSTANCE%.commands.resetAllSettings",
+          "ack": false,
+          "val": true,
+          "variant": "outlined",
+          "okText": "ecoflow_reset_ok"
         },
         "efImportHint": {
           "type": "staticText",
@@ -564,7 +573,7 @@
         },
         "efDevices": {
           "type": "table",
-          "attr": "ecoflow.devices",
+          "attr": "efDevices",
           "label": "ecoflow_devices",
           "noDelete": false,
           "noAdd": false,

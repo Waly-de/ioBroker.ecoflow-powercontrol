@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.15",
+    "version": "0.1.16",
     "news": {
+      "0.1.16": {
+        "en": "Fix auto-import restart loop, switch EcoFlow admin tab to ef* compatibility keys, and add reset-all settings button",
+        "de": "Auto-Import-Reset-Schleife behoben, EcoFlow-Admin-Tab auf kompatible ef*-Keys umgestellt und Reset-Button für alle Einstellungen ergänzt"
+      },
       "0.1.15": {
         "en": "Fix legacy script import parser for unresolved identifiers and align MQTT probe clientId/options closer to legacy behavior",
         "de": "Parser-Fix für Legacy-Script-Import bei undefinierten Bezeichnern und MQTT-Probe näher ans Legacy-Verhalten (clientId/Optionen) angepasst"
@@ -150,6 +154,12 @@
       "devices": [],
       "legacyScriptImport": ""
     },
+    "efEnabled": false,
+    "efEmail": "",
+    "efPassword": "",
+    "efReconnectMin": 30,
+    "efDevices": [],
+    "efLegacyScriptImport": "",
     "advanced": {
       "debug": false,
       "mlog": false,

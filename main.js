@@ -2,6 +2,7 @@
 
 const utils = require('@iobroker/adapter-core');
 const vm = require('vm');
+const ioPackage = require('./io-package.json');
 const EcoflowMqtt = require('./lib/ecoflow-mqtt');
 const Regulation = require('./lib/regulation');
 
@@ -37,6 +38,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
     async _onReady() {
         this.log.info('EcoFlow PowerControl adapter starting...');
+        this._restartRequestedByAutoImport = false;
 
         let cfg = await this._loadEffectiveConfig();
         this.config = cfg;
@@ -45,6 +47,12 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 0. Startup auto-import: if legacyScriptImport contains text, parse and apply it
         cfg = await this._autoImportLegacyScript(cfg);
+        this.config = cfg;
+
+        if (this._restartRequestedByAutoImport) {
+            this.log.warn('Startup stopped after auto-import because adapter restart was requested.');
+            return;
+        }
 
         // ── 1. Create dynamic object tree for configured inverters
         await this._createInverterObjects(cfg.inverters || []);
@@ -120,6 +128,7 @@ class EcoflowPowerControl extends utils.Adapter {
         await this.subscribeStatesAsync('regulation.enabled');
         await this.subscribeStatesAsync('commands.testConnection');
         await this.subscribeStatesAsync('commands.importLegacyScript');
+        await this.subscribeStatesAsync('commands.resetAllSettings');
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         await this._subscribeForeignStates(cfg);
@@ -214,6 +223,13 @@ class EcoflowPowerControl extends utils.Adapter {
             return;
         }
 
+        if (id === `${this.namespace}.commands.resetAllSettings`) {
+            if (state.ack) return;
+            await this.setStateAsync('commands.resetAllSettings', state.val, true);
+            await this._runResetAllFromState();
+            return;
+        }
+
         // ── EcoFlow writeable state changes (ack=false)
         if (id.includes('.ecoflow.') && !state.ack && this.ecoflowMqtt) {
             try {
@@ -242,7 +258,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
     async _onMessage(obj) {
         if (!obj || !obj.command) return;
-        if (obj.command !== 'testEcoflowConnection' && obj.command !== 'importOldScriptSettings') return;
+        if (obj.command !== 'testEcoflowConnection' && obj.command !== 'importOldScriptSettings' && obj.command !== 'resetAllSettings') return;
 
         const respond = payload => {
             if (obj.callback) {
@@ -313,6 +329,17 @@ class EcoflowPowerControl extends utils.Adapter {
                     saveConfig: true,
                     import_ok: `devices:${importedDevices};inverters:${importedInverters}`
                 });
+                return;
+            }
+
+            if (obj.command === 'resetAllSettings') {
+                const defaults = this._getDefaultNativeConfig();
+                respond({
+                    native: defaults,
+                    saveConfig: true,
+                    reset_ok: true
+                });
+                return;
             }
         } catch (err) {
             if (obj.command === 'testEcoflowConnection') {
@@ -321,6 +348,9 @@ class EcoflowPowerControl extends utils.Adapter {
             } else if (obj.command === 'importOldScriptSettings') {
                 this.log.error(`Legacy script import failed: ${err.message}`);
                 respond({ import_err: err.message });
+            } else if (obj.command === 'resetAllSettings') {
+                this.log.error(`Reset settings failed: ${err.message}`);
+                respond({ reset_err: err.message });
             }
         }
     }
@@ -549,6 +579,13 @@ class EcoflowPowerControl extends utils.Adapter {
             patch.ecoflow.enabled = true;
         }
 
+        // Mirror values for admin variants that store/read top-level ef* keys
+        if (patch.ecoflow.email !== undefined) patch.efEmail = patch.ecoflow.email;
+        if (patch.ecoflow.password !== undefined) patch.efPassword = patch.ecoflow.password;
+        if (patch.ecoflow.reconnectMin !== undefined) patch.efReconnectMin = patch.ecoflow.reconnectMin;
+        if (patch.ecoflow.enabled !== undefined) patch.efEnabled = patch.ecoflow.enabled;
+        if (patch.ecoflow.devices !== undefined) patch.efDevices = JSON.parse(JSON.stringify(patch.ecoflow.devices));
+
         return patch;
     }
 
@@ -712,28 +749,32 @@ class EcoflowPowerControl extends utils.Adapter {
             return null;
         };
 
-        if (!Array.isArray(mergedCfg.ecoflow.devices)) {
-            const candidateDevices = [
-                mergedCfg?.ecoflow?.devices,
-                nativeCfg?.ecoflow?.devices,
-                nativeCfg?.['ecoflow.devices'],
-                nativeCfg?.efDevices,
-                runtimeCfg?.ecoflow?.devices,
-                runtimeCfg?.['ecoflow.devices'],
-                runtimeCfg?.efDevices
-            ];
+        const candidateDevices = [
+            nativeCfg?.efDevices,
+            runtimeCfg?.efDevices,
+            mergedCfg?.ecoflow?.devices,
+            nativeCfg?.ecoflow?.devices,
+            nativeCfg?.['ecoflow.devices'],
+            runtimeCfg?.ecoflow?.devices,
+            runtimeCfg?.['ecoflow.devices']
+        ];
 
-            let resolvedDevices = null;
-            for (const candidate of candidateDevices) {
-                const normalized = normalizeDevicesArray(candidate);
-                if (normalized) {
-                    resolvedDevices = normalized;
-                    break;
-                }
+        let resolvedDevices = null;
+        for (const candidate of candidateDevices) {
+            const normalized = normalizeDevicesArray(candidate);
+            if (normalized) {
+                resolvedDevices = normalized;
+                break;
             }
-
-            mergedCfg.ecoflow.devices = resolvedDevices ? JSON.parse(JSON.stringify(resolvedDevices)) : [];
         }
+        mergedCfg.ecoflow.devices = resolvedDevices ? JSON.parse(JSON.stringify(resolvedDevices)) : [];
+
+        // Keep ef* mirrors in sync so Admin tab displays values reliably
+        mergedCfg.efEmail = mergedCfg.ecoflow.email || '';
+        mergedCfg.efPassword = mergedCfg.ecoflow.password || '';
+        mergedCfg.efReconnectMin = mergedCfg.ecoflow.reconnectMin !== undefined ? mergedCfg.ecoflow.reconnectMin : 30;
+        mergedCfg.efEnabled = !!mergedCfg.ecoflow.enabled;
+        mergedCfg.efDevices = JSON.parse(JSON.stringify(mergedCfg.ecoflow.devices || []));
 
         return mergedCfg;
     }
@@ -816,6 +857,19 @@ class EcoflowPowerControl extends utils.Adapter {
             },
             native: {}
         });
+
+        await this.setObjectNotExistsAsync('commands.resetAllSettings', {
+            type: 'state',
+            common: {
+                name: 'Reset all adapter settings to defaults',
+                type: 'boolean',
+                role: 'button',
+                read: true,
+                write: true,
+                def: false
+            },
+            native: {}
+        });
     }
 
     async _runTestConnectionFromState(rawPayload) {
@@ -873,6 +927,9 @@ class EcoflowPowerControl extends utils.Adapter {
 
             const legacyConfig = this._parseLegacyScriptConfig(script);
             const patch = this._mapLegacyConfigToNative(legacyConfig);
+            patch.ecoflow = patch.ecoflow || {};
+            patch.ecoflow.legacyScriptImport = '';
+            patch.efLegacyScriptImport = '';
 
             const instanceObjectId = `system.adapter.${this.namespace}`;
             const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
@@ -891,6 +948,29 @@ class EcoflowPowerControl extends utils.Adapter {
             await this.setStateAsync('commands.lastResult', message, true);
         } catch (err) {
             const message = `Legacy import failed: ${err.message}`;
+            this.log.error(message);
+            await this.setStateAsync('commands.lastResult', message, true);
+        }
+    }
+
+    async _runResetAllFromState() {
+        try {
+            this.log.warn('Admin command received: reset all adapter settings');
+
+            const instanceObjectId = `system.adapter.${this.namespace}`;
+            const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
+            if (!instanceObj) {
+                throw new Error(`Instance object not found: ${instanceObjectId}`);
+            }
+
+            instanceObj.native = this._getDefaultNativeConfig();
+            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
+
+            const message = 'All adapter settings reset to defaults. Adapter will restart now.';
+            this.log.warn(message);
+            await this.setStateAsync('commands.lastResult', message, true);
+        } catch (err) {
+            const message = `Reset failed: ${err.message}`;
             this.log.error(message);
             await this.setStateAsync('commands.lastResult', message, true);
         }
@@ -918,6 +998,7 @@ class EcoflowPowerControl extends utils.Adapter {
             // Clear the paste field so we don't re-import on every restart
             patch.ecoflow = patch.ecoflow || {};
             patch.ecoflow.legacyScriptImport = '';
+            patch.efLegacyScriptImport = '';
 
             const instanceObjectId = `system.adapter.${this.namespace}`;
             const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
@@ -930,6 +1011,15 @@ class EcoflowPowerControl extends utils.Adapter {
             if (instanceObj.native.ecoflow) {
                 instanceObj.native.ecoflow.legacyScriptImport = '';
             }
+            instanceObj.native['ecoflow.legacyScriptImport'] = '';
+            instanceObj.native.efLegacyScriptImport = '';
+            instanceObj.native.efEmail = String(instanceObj.native?.ecoflow?.email || '');
+            instanceObj.native.efPassword = String(instanceObj.native?.ecoflow?.password || '');
+            instanceObj.native.efReconnectMin = Number(instanceObj.native?.ecoflow?.reconnectMin || 30) || 30;
+            instanceObj.native.efEnabled = !!instanceObj.native?.ecoflow?.enabled;
+            instanceObj.native.efDevices = Array.isArray(instanceObj.native?.ecoflow?.devices)
+                ? JSON.parse(JSON.stringify(instanceObj.native.ecoflow.devices))
+                : [];
 
             const importedDevices = Array.isArray(instanceObj.native?.ecoflow?.devices) ? instanceObj.native.ecoflow.devices.length : 0;
             const importedInverters = Array.isArray(instanceObj.native?.inverters) ? instanceObj.native.inverters.length : 0;
@@ -938,6 +1028,7 @@ class EcoflowPowerControl extends utils.Adapter {
             this.log.warn(`Auto-import successful! devices=${importedDevices}, inverters=${importedInverters}, email=${importedEmail}`);
             this.log.warn('Saving imported config and restarting adapter...');
 
+            this._restartRequestedByAutoImport = true;
             await this.setForeignObjectAsync(instanceObjectId, instanceObj);
 
             // setForeignObjectAsync triggers an automatic adapter restart.
@@ -949,6 +1040,17 @@ class EcoflowPowerControl extends utils.Adapter {
             this.log.error('Please check the pasted script content. The adapter continues with current config.');
             return cfg;
         }
+    }
+
+    _getDefaultNativeConfig() {
+        const defaults = JSON.parse(JSON.stringify(ioPackage?.native || {}));
+        defaults.efEnabled = false;
+        defaults.efEmail = '';
+        defaults.efPassword = '';
+        defaults.efReconnectMin = 30;
+        defaults.efDevices = [];
+        defaults.efLegacyScriptImport = '';
+        return defaults;
     }
 
     // ──────────────────────────────────────────────────────────── object creation
