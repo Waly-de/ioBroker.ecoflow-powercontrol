@@ -1,0 +1,249 @@
+{
+  "common": {
+    "name": "ecoflow-powercontrol",
+    "title": "ioBroker EcoFlow PowerControl",
+    "titleLang": {
+      "de": "EcoFlow PowerControl",
+      "en": "EcoFlow PowerControl"
+    },
+    "version": "0.1.0",
+    "news": {
+      "0.1.0": {
+        "en": "Initial release – generic inverter regulation with optional EcoFlow MQTT bridge",
+        "de": "Erstveröffentlichung – generische Wechselrichterregelung mit optionaler EcoFlow MQTT-Brücke"
+      }
+    },
+    "desc": {
+      "en": "Generic solar inverter power regulation with optional EcoFlow MQTT bridge. Supports any inverter with configurable ioBroker state IDs.",
+      "de": "Generische Solar-Wechselrichterregelung mit optionaler EcoFlow MQTT-Brücke. Unterstützt jeden Wechselrichter über konfigurierbare ioBroker State-IDs."
+    },
+    "authors": [
+      "Markus Walber <markus@walber.de>"
+    ],
+    "enabled": true,
+    "platform": "Javascript/Node.js",
+    "mode": "daemon",
+    "type": "energy",
+    "allowInit": true,
+    "connectionType": "cloud",
+    "dataSource": "push",
+    "adminUI": {
+      "config": "json"
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=5.0.0"
+      }
+    ],
+    "globalDependencies": [],
+    "keywords": [
+      "ecoflow",
+      "powerstream",
+      "inverter",
+      "solar",
+      "regulation",
+      "smartmeter"
+    ]
+  },
+  "native": {
+    "regulation": {
+      "enabled": true,
+      "smartmeterStateId": "",
+      "smartmeterTimeoutMin": 4,
+      "smartmeterFallbackPower": 150,
+      "intervalSec": 15,
+      "basePowerOffset": 30,
+      "minValueMin": 2,
+      "minValueAg": 0,
+      "multiPsMode": 0,
+      "serialReverse": false,
+      "zusatzpowerOffset": 10,
+      "historyAdapter": "history",
+      "historyInstance": "0"
+    },
+    "inverters": [],
+    "additionalPower": [],
+    "excessCharge": {
+      "enabled": false,
+      "powerStateId": "",
+      "batSocStateId": "",
+      "actualPowerStateId": "",
+      "switchStateId": "",
+      "switchOnValue": "true",
+      "switchOffValue": "false",
+      "switchMinMin": 5,
+      "maxPower": 2000,
+      "offsetPower": 0,
+      "startPower": 50,
+      "stopPower": 0,
+      "startDurationMin": 1,
+      "minRegulatePauseMin": 1,
+      "regulateSteps": 100,
+      "batSocMax": 95,
+      "batSocOff": 100
+    },
+    "ecoflow": {
+      "enabled": false,
+      "email": "",
+      "password": "",
+      "reconnectMin": 30,
+      "devices": []
+    },
+    "advanced": {
+      "debug": false,
+      "mlog": false,
+      "avgPeriodMs": 15000
+    }
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Adapter Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "name": "EcoFlow MQTT connection",
+        "role": "indicator.connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation",
+      "type": "channel",
+      "common": {
+        "name": "Regulation"
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.enabled",
+      "type": "state",
+      "common": {
+        "name": "Regulation enabled",
+        "role": "switch",
+        "type": "boolean",
+        "read": true,
+        "write": true,
+        "def": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.gridPower",
+      "type": "state",
+      "common": {
+        "name": "Grid power (from smart meter)",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.realPower",
+      "type": "state",
+      "common": {
+        "name": "Real power demand (grid + all feed-in)",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.totalPV",
+      "type": "state",
+      "common": {
+        "name": "Total PV power across all inverters",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.excessPower",
+      "type": "state",
+      "common": {
+        "name": "Excess solar power available",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.lowestValue",
+      "type": "state",
+      "common": {
+        "name": "Lowest real power in measurement window",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.additionalPowerSum",
+      "type": "state",
+      "common": {
+        "name": "Sum of all additional power sources (feed-in)",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "regulation.additionalPVSum",
+      "type": "state",
+      "common": {
+        "name": "Sum of all additional PV sources",
+        "role": "value.power",
+        "type": "number",
+        "unit": "W",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    },
+    {
+      "_id": "inverters",
+      "type": "channel",
+      "common": {
+        "name": "Inverters"
+      },
+      "native": {}
+    }
+  ]
+}

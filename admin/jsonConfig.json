@@ -1,0 +1,559 @@
+{
+  "type": "tabs",
+  "items": {
+    "tab_inverters": {
+      "type": "tab",
+      "label": "tab_inverters",
+      "items": {
+        "inverters_header": {
+          "type": "header",
+          "text": "inverters_header",
+          "size": 5
+        },
+        "inverters": {
+          "type": "table",
+          "attr": "inverters",
+          "label": "inverters",
+          "showSecondAddAt": 3,
+          "noDelete": false,
+          "columns": [
+            {
+              "attr": "id",
+              "type": "text",
+              "title": "col_inv_id",
+              "width": "100px"
+            },
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_inv_name",
+              "width": "120px"
+            },
+            {
+              "attr": "type",
+              "type": "select",
+              "title": "col_inv_type",
+              "options": [
+                { "value": "generic", "label": "Generic" },
+                { "value": "ecoflow", "label": "EcoFlow PS" }
+              ],
+              "width": "110px",
+              "default": "generic"
+            },
+            {
+              "attr": "maxPower",
+              "type": "number",
+              "title": "col_inv_maxpower",
+              "width": "90px",
+              "default": 800
+            },
+            {
+              "attr": "regulation",
+              "type": "checkbox",
+              "title": "col_inv_regulation",
+              "width": "80px",
+              "default": true
+            },
+            {
+              "attr": "hasBat",
+              "type": "checkbox",
+              "title": "col_inv_hasbat",
+              "width": "70px",
+              "default": true
+            },
+            {
+              "attr": "outputStateId",
+              "type": "text",
+              "title": "col_inv_outputstateid",
+              "width": "250px"
+            },
+            {
+              "attr": "setOutputStateId",
+              "type": "text",
+              "title": "col_inv_setoutputstateid",
+              "width": "250px"
+            },
+            {
+              "attr": "batterySOCStateId",
+              "type": "text",
+              "title": "col_inv_batsocstateid",
+              "width": "250px"
+            },
+            {
+              "attr": "pvPowerStateId",
+              "type": "text",
+              "title": "col_inv_pvstateid",
+              "width": "250px"
+            },
+            {
+              "attr": "setPriorityStateId",
+              "type": "text",
+              "title": "col_inv_setpriostateid",
+              "width": "250px"
+            },
+            {
+              "attr": "battPozOn",
+              "type": "number",
+              "title": "col_inv_batpozon",
+              "width": "80px",
+              "default": 95
+            },
+            {
+              "attr": "battPozOff",
+              "type": "number",
+              "title": "col_inv_batpozoff",
+              "width": "80px",
+              "default": 90
+            },
+            {
+              "attr": "battOnSwitchPrio",
+              "type": "checkbox",
+              "title": "col_inv_switchprio",
+              "width": "80px",
+              "default": false
+            },
+            {
+              "attr": "prioOffOnDemand",
+              "type": "number",
+              "title": "col_inv_priooffondemand",
+              "width": "80px",
+              "default": 0
+            },
+            {
+              "attr": "lowBatLimitPozOn",
+              "type": "number",
+              "title": "col_inv_lowbatlimitpozon",
+              "width": "80px",
+              "default": 10
+            },
+            {
+              "attr": "lowBatLimitPozOff",
+              "type": "number",
+              "title": "col_inv_lowbatlimitpozoff",
+              "width": "80px",
+              "default": 20
+            },
+            {
+              "attr": "lowBatLimit",
+              "type": "number",
+              "title": "col_inv_lowbatlimit",
+              "width": "80px",
+              "default": 100
+            },
+            {
+              "attr": "regulationOffPower",
+              "type": "number",
+              "title": "col_inv_regulationoffpower",
+              "width": "90px",
+              "default": 0
+            }
+          ]
+        },
+        "addpower_header": {
+          "type": "header",
+          "text": "addpower_header",
+          "size": 5
+        },
+        "additionalPower": {
+          "type": "table",
+          "attr": "additionalPower",
+          "label": "additionalpower_label",
+          "noDelete": false,
+          "columns": [
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_ap_name",
+              "width": "150px"
+            },
+            {
+              "attr": "id",
+              "type": "text",
+              "title": "col_ap_stateid",
+              "width": "300px"
+            },
+            {
+              "attr": "factor",
+              "type": "number",
+              "title": "col_ap_factor",
+              "width": "80px",
+              "default": 1
+            },
+            {
+              "attr": "offset",
+              "type": "number",
+              "title": "col_ap_offset",
+              "width": "80px",
+              "default": 0
+            },
+            {
+              "attr": "noFeedIn",
+              "type": "checkbox",
+              "title": "col_ap_nofeedin",
+              "width": "80px",
+              "default": false
+            },
+            {
+              "attr": "noPV",
+              "type": "checkbox",
+              "title": "col_ap_nopv",
+              "width": "80px",
+              "default": false
+            }
+          ]
+        },
+        "ec_header": {
+          "type": "header",
+          "text": "ec_header",
+          "size": 5
+        },
+        "excessCharge.enabled": {
+          "type": "checkbox",
+          "label": "ec_enabled",
+          "attr": "excessCharge.enabled",
+          "default": false
+        },
+        "ec_panel": {
+          "type": "panel",
+          "label": "ec_panel",
+          "hidden": "!data.excessCharge.enabled",
+          "items": {
+            "excessCharge.powerStateId": {
+              "type": "text",
+              "label": "ec_powerstateid",
+              "attr": "excessCharge.powerStateId"
+            },
+            "excessCharge.batSocStateId": {
+              "type": "text",
+              "label": "ec_batsocstateid",
+              "attr": "excessCharge.batSocStateId"
+            },
+            "excessCharge.actualPowerStateId": {
+              "type": "text",
+              "label": "ec_actualpowerstateid",
+              "attr": "excessCharge.actualPowerStateId"
+            },
+            "excessCharge.switchStateId": {
+              "type": "text",
+              "label": "ec_switchstateid",
+              "attr": "excessCharge.switchStateId"
+            },
+            "excessCharge.switchOnValue": {
+              "type": "text",
+              "label": "ec_switchonvalue",
+              "attr": "excessCharge.switchOnValue",
+              "default": "true"
+            },
+            "excessCharge.switchOffValue": {
+              "type": "text",
+              "label": "ec_switchoffvalue",
+              "attr": "excessCharge.switchOffValue",
+              "default": "false"
+            },
+            "excessCharge.maxPower": {
+              "type": "number",
+              "label": "ec_maxpower",
+              "attr": "excessCharge.maxPower",
+              "default": 2000
+            },
+            "excessCharge.offsetPower": {
+              "type": "number",
+              "label": "ec_offsetpower",
+              "attr": "excessCharge.offsetPower",
+              "default": 0
+            },
+            "excessCharge.startPower": {
+              "type": "number",
+              "label": "ec_startpower",
+              "attr": "excessCharge.startPower",
+              "default": 50
+            },
+            "excessCharge.stopPower": {
+              "type": "number",
+              "label": "ec_stoppower",
+              "attr": "excessCharge.stopPower",
+              "default": 0
+            },
+            "excessCharge.startDurationMin": {
+              "type": "number",
+              "label": "ec_startdurationmin",
+              "attr": "excessCharge.startDurationMin",
+              "default": 1
+            },
+            "excessCharge.minRegulatePauseMin": {
+              "type": "number",
+              "label": "ec_minregulatepausemin",
+              "attr": "excessCharge.minRegulatePauseMin",
+              "default": 1
+            },
+            "excessCharge.regulateSteps": {
+              "type": "number",
+              "label": "ec_regulatesteps",
+              "attr": "excessCharge.regulateSteps",
+              "default": 100
+            },
+            "excessCharge.batSocMax": {
+              "type": "number",
+              "label": "ec_batsocmax",
+              "attr": "excessCharge.batSocMax",
+              "default": 95
+            },
+            "excessCharge.batSocOff": {
+              "type": "number",
+              "label": "ec_batsocoff",
+              "attr": "excessCharge.batSocOff",
+              "default": 100
+            },
+            "excessCharge.switchMinMin": {
+              "type": "number",
+              "label": "ec_switchminmin",
+              "attr": "excessCharge.switchMinMin",
+              "default": 5
+            }
+          }
+        }
+      }
+    },
+    "tab_ecoflow": {
+      "type": "tab",
+      "label": "tab_ecoflow",
+      "items": {
+        "ecoflow_intro": {
+          "type": "staticText",
+          "text": "ecoflow_intro"
+        },
+        "ecoflow.enabled": {
+          "type": "checkbox",
+          "label": "ecoflow_enabled",
+          "attr": "ecoflow.enabled",
+          "default": false
+        },
+        "ecoflow_credentials": {
+          "type": "panel",
+          "label": "ecoflow_credentials",
+          "hidden": "!data.ecoflow.enabled",
+          "items": {
+            "ecoflow.email": {
+              "type": "text",
+              "label": "ecoflow_email",
+              "attr": "ecoflow.email"
+            },
+            "ecoflow.password": {
+              "type": "password",
+              "label": "ecoflow_password",
+              "attr": "ecoflow.password"
+            },
+            "ecoflow.reconnectMin": {
+              "type": "number",
+              "label": "ecoflow_reconnectmin",
+              "attr": "ecoflow.reconnectMin",
+              "default": 30
+            }
+          }
+        },
+        "ecoflow_devices_header": {
+          "type": "header",
+          "text": "ecoflow_devices_header",
+          "size": 5,
+          "hidden": "!data.ecoflow.enabled"
+        },
+        "ecoflow.devices": {
+          "type": "table",
+          "attr": "ecoflow.devices",
+          "label": "ecoflow_devices",
+          "hidden": "!data.ecoflow.enabled",
+          "noDelete": false,
+          "columns": [
+            {
+              "attr": "serial",
+              "type": "text",
+              "title": "col_ef_serial",
+              "width": "200px",
+              "default": "XXXXXXXXXXXXX"
+            },
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_ef_name",
+              "width": "150px"
+            },
+            {
+              "attr": "typ",
+              "type": "select",
+              "title": "col_ef_typ",
+              "options": [
+                { "value": "PS", "label": "PowerStream (PS)" },
+                { "value": "DM", "label": "DELTA Max (DM)" },
+                { "value": "D2", "label": "DELTA 2 (D2)" },
+                { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
+                { "value": "SM", "label": "Smart Plug (SM)" }
+              ],
+              "width": "180px",
+              "default": "PS"
+            },
+            {
+              "attr": "subscribe",
+              "type": "checkbox",
+              "title": "col_ef_subscribe",
+              "width": "90px",
+              "default": true
+            }
+          ]
+        },
+        "ecoflow_statepaths": {
+          "type": "staticText",
+          "text": "ecoflow_statepaths_hint",
+          "hidden": "!data.ecoflow.enabled"
+        }
+      }
+    },
+    "tab_regulation": {
+      "type": "tab",
+      "label": "tab_regulation",
+      "items": {
+        "reg_sm_header": {
+          "type": "header",
+          "text": "reg_sm_header",
+          "size": 5
+        },
+        "regulation.smartmeterStateId": {
+          "type": "text",
+          "label": "reg_smartmeterstateid",
+          "attr": "regulation.smartmeterStateId"
+        },
+        "regulation.smartmeterTimeoutMin": {
+          "type": "number",
+          "label": "reg_smartmetertimeoutmin",
+          "attr": "regulation.smartmeterTimeoutMin",
+          "default": 4
+        },
+        "regulation.smartmeterFallbackPower": {
+          "type": "number",
+          "label": "reg_smartmeterfallbackpower",
+          "attr": "regulation.smartmeterFallbackPower",
+          "default": 150
+        },
+        "reg_loop_header": {
+          "type": "header",
+          "text": "reg_loop_header",
+          "size": 5
+        },
+        "regulation.intervalSec": {
+          "type": "number",
+          "label": "reg_intervalsec",
+          "attr": "regulation.intervalSec",
+          "default": 15
+        },
+        "regulation.basePowerOffset": {
+          "type": "number",
+          "label": "reg_basepoweroffset",
+          "attr": "regulation.basePowerOffset",
+          "default": 30
+        },
+        "regulation.minValueMin": {
+          "type": "number",
+          "label": "reg_minvaluemin",
+          "attr": "regulation.minValueMin",
+          "default": 2
+        },
+        "regulation.minValueAg": {
+          "type": "select",
+          "label": "reg_minvalueag",
+          "attr": "regulation.minValueAg",
+          "options": [
+            { "value": 0, "label": "reg_minvalueag_min" },
+            { "value": 1, "label": "reg_minvalueag_avg" }
+          ],
+          "default": 0
+        },
+        "regulation.zusatzpowerOffset": {
+          "type": "number",
+          "label": "reg_zusatzpoweroffset",
+          "attr": "regulation.zusatzpowerOffset",
+          "default": 10
+        },
+        "reg_multiinv_header": {
+          "type": "header",
+          "text": "reg_multiinv_header",
+          "size": 5
+        },
+        "regulation.multiPsMode": {
+          "type": "select",
+          "label": "reg_multipsmode",
+          "attr": "regulation.multiPsMode",
+          "options": [
+            { "value": 0, "label": "reg_multipsmode_balance" },
+            { "value": 1, "label": "reg_multipsmode_serial" }
+          ],
+          "default": 0
+        },
+        "regulation.serialReverse": {
+          "type": "checkbox",
+          "label": "reg_serialreverse",
+          "attr": "regulation.serialReverse",
+          "default": false,
+          "hidden": "data.regulation.multiPsMode !== 1"
+        },
+        "reg_history_header": {
+          "type": "header",
+          "text": "reg_history_header",
+          "size": 5
+        },
+        "regulation.historyAdapter": {
+          "type": "select",
+          "label": "reg_historyadapter",
+          "attr": "regulation.historyAdapter",
+          "options": [
+            { "value": "history",  "label": "ioBroker History" },
+            { "value": "influxdb", "label": "InfluxDB" },
+            { "value": "sql",      "label": "SQL" }
+          ],
+          "default": "history"
+        },
+        "regulation.historyInstance": {
+          "type": "text",
+          "label": "reg_historyinstance",
+          "attr": "regulation.historyInstance",
+          "default": "0"
+        }
+      }
+    },
+    "tab_info": {
+      "type": "tab",
+      "label": "tab_info",
+      "items": {
+        "debug_header": {
+          "type": "header",
+          "text": "debug_header",
+          "size": 5
+        },
+        "advanced.debug": {
+          "type": "checkbox",
+          "label": "advanced_debug",
+          "attr": "advanced.debug",
+          "default": false
+        },
+        "advanced.mlog": {
+          "type": "checkbox",
+          "label": "advanced_mlog",
+          "attr": "advanced.mlog",
+          "default": false
+        },
+        "advanced.avgPeriodMs": {
+          "type": "number",
+          "label": "advanced_avgperiodms",
+          "attr": "advanced.avgPeriodMs",
+          "default": 15000
+        },
+        "info_links": {
+          "type": "staticText",
+          "text": "info_links"
+        },
+        "info_regulationoffpower_hint": {
+          "type": "staticText",
+          "text": "info_regulationoffpower_hint"
+        }
+      }
+    }
+  }
+}

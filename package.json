@@ -1,0 +1,37 @@
+{
+  "name": "iobroker.ecoflow-powercontrol",
+  "version": "0.1.0",
+  "description": "ioBroker adapter for generic solar inverter power regulation with optional EcoFlow MQTT bridge",
+  "author": {
+    "name": "Markus Walber",
+    "email": "markus@walber.de"
+  },
+  "homepage": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol",
+  "license": "MIT",
+  "keywords": [
+    "ioBroker",
+    "ecoflow",
+    "powerstream",
+    "inverter",
+    "solar",
+    "regulation",
+    "excess",
+    "smartmeter"
+  ],
+  "main": "main.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "@iobroker/adapter-core": "^3.1.6",
+    "axios": "^1.7.2",
+    "mqtt": "^5.7.3",
+    "protobufjs": "^7.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
