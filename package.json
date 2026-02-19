@@ -1,6 +1,6 @@
 {
   "name": "iobroker.ecoflow-powercontrol",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "description": "ioBroker adapter for generic solar inverter power regulation with optional EcoFlow MQTT bridge",
   "author": {
     "name": "Markus Walber",

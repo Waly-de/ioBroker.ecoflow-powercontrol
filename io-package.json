@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.25",
+    "version": "0.1.26",
     "news": {
+      "0.1.26": {
+        "en": "Hotfix: restore missing method declaration for realPower watcher introduced in 0.1.25",
+        "de": "Hotfix: fehlende Methoden-Deklaration für den in 0.1.25 eingeführten realPower-Watcher wiederhergestellt"
+      },
       "0.1.25": {
         "en": "Add periodic realPower watcher independent of state-change subscriptions, read smartmeter value at execution time, and align LastRealPower handling with legacy script",
         "de": "Periodischen realPower-Watcher unabhängig von State-Change-Subscriptions ergänzt, Smartmeterwert zur Ausführungszeit gelesen und LastRealPower-Verhalten ans Legacy-Script angeglichen"

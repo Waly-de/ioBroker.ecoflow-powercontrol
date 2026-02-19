@@ -997,6 +997,8 @@ class EcoflowPowerControl extends utils.Adapter {
             this.log.warn(`Initial smartmeter read failed (${smartmeterStateId}): ${err.message}`);
         }
     }
+
+    _startRealPowerWatcher(cfg) {
         if (this.realPowerWatchInterval || !this.regulation) return;
         const smartmeterStateId = this._normalizeStateIdInput(cfg?.regulation?.smartmeterStateId);
         if (!smartmeterStateId) return;
