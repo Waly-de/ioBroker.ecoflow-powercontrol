@@ -288,6 +288,8 @@ class EcoflowPowerControl extends utils.Adapter {
         if (!obj || !obj.command) return;
         if (obj.command !== 'testEcoflowConnection' && obj.command !== 'importOldScriptSettings' && obj.command !== 'resetAllSettings') return;
 
+        this.log.warn(`Admin sendTo command received: ${obj.command}`);
+
         const respond = payload => {
             if (obj.callback) {
                 this.sendTo(obj.from, obj.command, payload, obj.callback);
@@ -327,7 +329,9 @@ class EcoflowPowerControl extends utils.Adapter {
                 try {
                     tester = new EcoflowMqtt(this, { configOverride: testCfg, testMode: true });
                     const result = await tester.testConnection();
-                    this.log.info(`EcoFlow MQTT test successful (${result.protocol}://${result.url}:${result.port}, userId=${result.userId}).`);
+                    const okMessage = `EcoFlow MQTT test successful (${result.protocol}://${result.url}:${result.port}, userId=${result.userId}).`;
+                    this.log.info(okMessage);
+                    await this.setStateAsync('commands.lastResult', okMessage, true);
                     respond({ test_ok: `${result.protocol}://${result.url}:${result.port}` });
                 } finally {
                     if (tester) {
@@ -350,7 +354,9 @@ class EcoflowPowerControl extends utils.Adapter {
 
                 const importedDevices = Array.isArray(native.ecoflow?.devices) ? native.ecoflow.devices.length : 0;
                 const importedInverters = Array.isArray(native.inverters) ? native.inverters.length : 0;
-                this.log.info(`Legacy script import successful (devices: ${importedDevices}, inverters: ${importedInverters}).`);
+                const okMessage = `Legacy script import successful (devices: ${importedDevices}, inverters: ${importedInverters}).`;
+                this.log.info(okMessage);
+                await this.setStateAsync('commands.lastResult', okMessage, true);
 
                 respond({
                     native,
@@ -362,6 +368,9 @@ class EcoflowPowerControl extends utils.Adapter {
 
             if (obj.command === 'resetAllSettings') {
                 const defaults = this._getDefaultNativeConfig();
+                const okMessage = 'Admin reset prepared defaults. Save config to apply reset values.';
+                this.log.warn(okMessage);
+                await this.setStateAsync('commands.lastResult', okMessage, true);
                 respond({
                     native: defaults,
                     saveConfig: true,
@@ -372,12 +381,15 @@ class EcoflowPowerControl extends utils.Adapter {
         } catch (err) {
             if (obj.command === 'testEcoflowConnection') {
                 this.log.error(`EcoFlow MQTT test failed: ${err.message}`);
+                await this.setStateAsync('commands.lastResult', `EcoFlow MQTT test failed: ${err.message}`, true);
                 respond({ test_err: err.message });
             } else if (obj.command === 'importOldScriptSettings') {
                 this.log.error(`Legacy script import failed: ${err.message}`);
+                await this.setStateAsync('commands.lastResult', `Legacy script import failed: ${err.message}`, true);
                 respond({ import_err: err.message });
             } else if (obj.command === 'resetAllSettings') {
                 this.log.error(`Reset settings failed: ${err.message}`);
+                await this.setStateAsync('commands.lastResult', `Reset settings failed: ${err.message}`, true);
                 respond({ reset_err: err.message });
             }
         }

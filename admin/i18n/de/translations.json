@@ -74,6 +74,8 @@
   "ecoflow_import_ok": "Import gestartet. Ergebnis steht sofort in commands.lastResult.",
   "ecoflow_reset_button": "Alle Einstellungen zurücksetzen (Reset)",
   "ecoflow_reset_ok": "Reset gestartet. Adapter startet mit Werkseinstellungen neu.",
+  "ecoflow_reset_success": "Reset-Werte vorbereitet. Bitte speichern, damit sie übernommen werden.",
+  "ecoflow_reset_error": "Reset fehlgeschlagen",
   "ecoflow_import_success": "Import erfolgreich",
   "ecoflow_import_error": "Import fehlgeschlagen",
   "ecoflow_import_triggered": "Import gestartet – Ergebnis im Adapter-Log und im State commands.lastResult",

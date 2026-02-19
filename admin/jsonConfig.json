@@ -522,11 +522,17 @@
           "default": 30
         },
         "efTestConnection": {
-          "type": "setState",
+          "type": "sendTo",
           "label": "ecoflow_test_connection",
-          "id": "ecoflow-powercontrol.%INSTANCE%.commands.testConnection",
-          "ack": false,
-          "val": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
+          "command": "testEcoflowConnection",
+          "jsonData": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
+          "showProcess": true,
+          "result": {
+            "test_ok": "ecoflow_test_success"
+          },
+          "error": {
+            "test_err": "ecoflow_test_error"
+          },
           "variant": "contained",
           "okText": "ecoflow_test_ok"
         },
@@ -546,20 +552,33 @@
           "maxRows": 20
         },
         "efImportSettings": {
-          "type": "setState",
+          "type": "sendTo",
           "label": "ecoflow_import_button",
-          "id": "ecoflow-powercontrol.%INSTANCE%.commands.importLegacyScript",
-          "ack": false,
-          "val": "${data.ecoflow.legacyScriptImport}",
+          "command": "importOldScriptSettings",
+          "jsonData": "{\"script\":\"${data.ecoflow.legacyScriptImport}\"}",
+          "showProcess": true,
+          "result": {
+            "import_ok": "ecoflow_import_success"
+          },
+          "error": {
+            "import_err": "ecoflow_import_error"
+          },
           "variant": "contained",
           "okText": "ecoflow_import_ok"
         },
         "efResetAll": {
-          "type": "setState",
+          "type": "sendTo",
           "label": "ecoflow_reset_button",
-          "id": "ecoflow-powercontrol.%INSTANCE%.commands.resetAllSettings",
-          "ack": false,
-          "val": true,
+          "command": "resetAllSettings",
+          "data": {},
+          "showProcess": true,
+          "result": {
+            "reset_ok": "ecoflow_reset_success"
+          },
+          "error": {
+            "reset_err": "ecoflow_reset_error"
+          },
+          "useNative": true,
           "variant": "outlined",
           "okText": "ecoflow_reset_ok"
         },

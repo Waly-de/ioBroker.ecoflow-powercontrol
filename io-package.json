@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.20",
+    "version": "0.1.21",
     "news": {
+      "0.1.21": {
+        "en": "Switch admin test/import/reset buttons to sendTo with backend result mapping, add explicit command-received logs, and mirror outcomes to commands.lastResult",
+        "de": "Admin-Buttons für Test/Import/Reset auf sendTo mit Ergebnis-Mapping umgestellt, explizite Logs bei Kommandoeingang ergänzt und Ergebnisse nach commands.lastResult gespiegelt"
+      },
       "0.1.20": {
         "en": "Fix admin command execution reliability for test/import/reset, add live command result display in admin, and stabilize reset sequencing",
         "de": "Zuverlässigkeit der Admin-Befehle für Test/Import/Reset verbessert, Live-Ergebnisanzeige in der Admin ergänzt und Reset-Ablauf stabilisiert"
