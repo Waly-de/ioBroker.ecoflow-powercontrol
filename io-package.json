@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.10",
+    "version": "0.1.11",
     "news": {
+      "0.1.11": {
+        "en": "Auto-import legacy script on startup: paste script in admin, save, done – no button needed",
+        "de": "Auto-Import von altem Script beim Start: Script in Admin einfügen, speichern, fertig – kein Button nötig"
+      },
       "0.1.10": {
         "en": "Add startup diagnostics for EcoFlow config and auto-enable fallback when credentials are present",
         "de": "Startup-Diagnose für EcoFlow-Konfiguration ergänzt und Auto-Enable-Fallback bei vorhandenen Zugangsdaten aktiviert"

@@ -38,9 +38,12 @@ class EcoflowPowerControl extends utils.Adapter {
     async _onReady() {
         this.log.info('EcoFlow PowerControl adapter starting...');
 
-        const cfg = this.config;
+        let cfg = this.config;
 
         await this._createCommandObjects();
+
+        // ── 0. Startup auto-import: if legacyScriptImport contains text, parse and apply it
+        cfg = await this._autoImportLegacyScript(cfg);
 
         // ── 1. Create dynamic object tree for configured inverters
         await this._createInverterObjects(cfg.inverters || []);
@@ -668,6 +671,61 @@ class EcoflowPowerControl extends utils.Adapter {
             const message = `Legacy import failed: ${err.message}`;
             this.log.error(message);
             await this.setStateAsync('commands.lastResult', message, true);
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────── startup auto-import
+
+    /**
+     * If the user pasted a legacy script into the admin text field and saved,
+     * this method parses ConfigData at startup, merges it into native config,
+     * clears the paste field, and returns the updated config object.
+     * The adapter then restarts automatically via setForeignObjectAsync.
+     */
+    async _autoImportLegacyScript(cfg) {
+        const scriptText = String(cfg?.ecoflow?.legacyScriptImport || '').trim();
+        if (!scriptText) return cfg;
+        if (scriptText.length < 50) return cfg; // too short to be a real script
+
+        this.log.warn('Legacy script detected in config paste field. Starting auto-import...');
+
+        try {
+            const legacyConfig = this._parseLegacyScriptConfig(scriptText);
+            const patch = this._mapLegacyConfigToNative(legacyConfig);
+
+            // Clear the paste field so we don't re-import on every restart
+            patch.ecoflow = patch.ecoflow || {};
+            patch.ecoflow.legacyScriptImport = '';
+
+            const instanceObjectId = `system.adapter.${this.namespace}`;
+            const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
+            if (!instanceObj) {
+                throw new Error(`Instance object not found: ${instanceObjectId}`);
+            }
+
+            instanceObj.native = this._deepMerge(instanceObj.native || {}, patch);
+            // Also clear the paste field in the saved object
+            if (instanceObj.native.ecoflow) {
+                instanceObj.native.ecoflow.legacyScriptImport = '';
+            }
+
+            const importedDevices = Array.isArray(instanceObj.native?.ecoflow?.devices) ? instanceObj.native.ecoflow.devices.length : 0;
+            const importedInverters = Array.isArray(instanceObj.native?.inverters) ? instanceObj.native.inverters.length : 0;
+            const importedEmail = instanceObj.native?.ecoflow?.email ? 'set' : 'missing';
+
+            this.log.warn(`Auto-import successful! devices=${importedDevices}, inverters=${importedInverters}, email=${importedEmail}`);
+            this.log.warn('Saving imported config and restarting adapter...');
+
+            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
+
+            // setForeignObjectAsync triggers an automatic adapter restart.
+            // Return the merged config so the current startup cycle can continue
+            // (although the restart will overwrite it shortly).
+            return instanceObj.native;
+        } catch (err) {
+            this.log.error(`Auto-import of legacy script failed: ${err.message}`);
+            this.log.error('Please check the pasted script content. The adapter continues with current config.');
+            return cfg;
         }
     }
 
