@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.29",
+    "version": "0.1.30",
     "news": {
+      "0.1.30": {
+        "en": "Add detailed onReady breadcrumb logs and fatal startup error logging to pinpoint initialization stalls",
+        "de": "Detaillierte onReady-Breadcrumb-Logs und fatale Startup-Fehlerausgabe ergänzt, um Initialisierungs-Blockaden exakt zu lokalisieren"
+      },
       "0.1.29": {
         "en": "Make EcoFlow MQTT startup non-blocking with timeout guard so adapter initialization continues and regulation/realPower always start",
         "de": "EcoFlow-MQTT-Start mit Timeout-Schutz nicht-blockierend gemacht, damit Adapter-Initialisierung weiterläuft und Regelung/realPower immer starten"

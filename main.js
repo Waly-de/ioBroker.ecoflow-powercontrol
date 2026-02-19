@@ -46,6 +46,8 @@ class EcoflowPowerControl extends utils.Adapter {
         this.log.info('EcoFlow PowerControl adapter starting...');
         this._restartRequestedByAutoImport = false;
 
+        try {
+
         let cfg = await this._loadEffectiveConfig();
         this.config = cfg;
 
@@ -53,10 +55,14 @@ class EcoflowPowerControl extends utils.Adapter {
         const normalizedSmartmeter = this._normalizeStateIdInput(rawSmartmeter);
         this.log.info(`Smartmeter config loaded: raw='${rawSmartmeter || ''}' normalized='${normalizedSmartmeter || ''}'`);
 
+        this.log.info('onReady step: create command objects (begin)');
         await this._createCommandObjects();
+        this.log.info('onReady step: create command objects (done)');
 
         // ── 0. Startup auto-import: if legacyScriptImport contains text, parse and apply it
+        this.log.info('onReady step: auto-import legacy script check (begin)');
         cfg = await this._autoImportLegacyScript(cfg);
+        this.log.info('onReady step: auto-import legacy script check (done)');
         this.config = cfg;
 
         if (this._restartRequestedByAutoImport) {
@@ -65,7 +71,9 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         // ── 1. Create dynamic object tree for configured inverters
+        this.log.info('onReady step: create inverter objects (begin)');
         await this._createInverterObjects(cfg.inverters || []);
+        this.log.info('onReady step: create inverter objects (done)');
 
         // ── 2. Optionally create ecoflow channel
         if (cfg.ecoflow && cfg.ecoflow.enabled) {
@@ -120,7 +128,9 @@ class EcoflowPowerControl extends utils.Adapter {
             }
             this.log.info(`EcoFlow MQTT is enabled (devices: ${(cfg.ecoflow.devices || []).length}). Starting connection...`);
             this.ecoflowMqtt = new EcoflowMqtt(this);
+            this.log.info('onReady step: EcoFlow MQTT startup (begin)');
             await this._startEcoflowMqttNonBlocking();
+            this.log.info('onReady step: EcoFlow MQTT startup (done)');
         } else {
             // Ensure info.connection = false when EcoFlow is disabled
             if ((cfg.ecoflow && cfg.ecoflow.enabled) || (ecoflowHasEmail && ecoflowHasPassword)) {
@@ -137,17 +147,23 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         // ── 5. Create Regulation instance
+        this.log.info('onReady step: create Regulation instance (begin)');
         this.regulation = new Regulation(this, this.ecoflowMqtt);
+        this.log.info('onReady step: create Regulation instance (done)');
 
         // Sync regulation.enabled state into the regulation object
+        this.log.info('onReady step: read regulation.enabled state (begin)');
         const regEnabledState = await this.getStateAsync('regulation.enabled');
         this.regulation.regulationEnabled = regEnabledState ? !!regEnabledState.val : true;
+        this.log.info(`onReady step: read regulation.enabled state (done, value=${this.regulation.regulationEnabled})`);
 
         // ── 6. Subscribe to own states
+        this.log.info('onReady step: subscribe own states (begin)');
         await this.subscribeStatesAsync('regulation.enabled');
         await this.subscribeStatesAsync('commands.testConnection');
         await this.subscribeStatesAsync('commands.importLegacyScript');
         await this.subscribeStatesAsync('commands.resetAllSettings');
+        this.log.info('onReady step: subscribe own states (done)');
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         this.log.info('Starting foreign state subscriptions...');
@@ -162,18 +178,25 @@ class EcoflowPowerControl extends utils.Adapter {
             this.log.warn('No smartmeter state configured (regulation.smartmeterStateId is empty).');
         }
 
+        this.log.info('onReady step: initialize realPower from smartmeter (begin)');
         await this._initializeRealPowerFromSmartmeter(cfg);
+        this.log.info('onReady step: initialize realPower from smartmeter (done)');
+        this.log.info('onReady step: start realPower watcher (begin)');
         this._startRealPowerWatcher(cfg);
+        this.log.info('onReady step: start realPower watcher (done)');
 
         // ── 8. Ensure history logging for regulation.realPower
+        this.log.info('onReady step: ensure history logging (begin)');
         try {
             await this.regulation.ensureHistoryLogging();
         } catch (e) {
             this.log.warn(`History setup failed: ${e.message}`);
         }
+        this.log.info('onReady step: ensure history logging (done)');
 
         // ── 9. Start regulation loop
         const intervalMs = ((cfg.regulation && cfg.regulation.intervalSec) || 15) * 1000;
+        this.log.info('onReady step: start regulation loop (begin)');
         this.regulationInterval = setInterval(async () => {
             try {
                 await this.regulation.run();
@@ -191,6 +214,9 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         this.log.info('EcoFlow PowerControl adapter ready.');
+        } catch (err) {
+            this.log.error(`onReady fatal error: ${err.message}\n${err.stack || ''}`);
+        }
     }
 
     async _onUnload(callback) {
