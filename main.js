@@ -895,13 +895,7 @@ class EcoflowPowerControl extends utils.Adapter {
         mergedCfg.efEnabled = !!mergedCfg.ecoflow.enabled;
         mergedCfg.efDevices = JSON.parse(JSON.stringify(mergedCfg.ecoflow.devices || []));
 
-        mergedCfg.regulation.smartmeterStateId = this._normalizeStateIdInput(firstNonEmpty(
-            mergedCfg?.regulation?.smartmeterStateId,
-            nativeCfg?.regulation?.smartmeterStateId,
-            nativeCfg?.['regulation.smartmeterStateId'],
-            runtimeCfg?.regulation?.smartmeterStateId,
-            runtimeCfg?.['regulation.smartmeterStateId']
-        ));
+        mergedCfg.regulation.smartmeterStateId = await this._resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg);
 
         return mergedCfg;
     }
@@ -928,6 +922,45 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         return text;
+    }
+
+    async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
+        const candidatesRaw = [
+            runtimeCfg?.regulation?.smartmeterStateId,
+            runtimeCfg?.['regulation.smartmeterStateId'],
+            mergedCfg?.regulation?.smartmeterStateId,
+            nativeCfg?.regulation?.smartmeterStateId,
+            nativeCfg?.['regulation.smartmeterStateId']
+        ];
+
+        const candidates = [];
+        for (const raw of candidatesRaw) {
+            const id = this._normalizeStateIdInput(raw);
+            if (!id) continue;
+            if (!candidates.includes(id)) candidates.push(id);
+        }
+
+        if (!candidates.length) return '';
+
+        let bestId = candidates[0];
+        let bestTs = -1;
+
+        for (const id of candidates) {
+            try {
+                const state = await this.getForeignStateAsync(id);
+                const ts = Number(state?.ts) || 0;
+                this.log.info(`Smartmeter candidate check: ${id} ts=${ts}`);
+                if (ts > bestTs) {
+                    bestTs = ts;
+                    bestId = id;
+                }
+            } catch (err) {
+                this.log.debug(`Smartmeter candidate read failed for ${id}: ${err.message}`);
+            }
+        }
+
+        this.log.info(`Smartmeter candidate selected: ${bestId} (ts=${bestTs})`);
+        return bestId;
     }
 
     async _startEcoflowMqttNonBlocking() {

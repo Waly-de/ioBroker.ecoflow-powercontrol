@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.32",
+    "version": "0.1.33",
     "news": {
+      "0.1.33": {
+        "en": "Resolve regulation.smartmeterStateId by checking runtime/native candidates and selecting the freshest available state timestamp to avoid stale imported IDs",
+        "de": "regulation.smartmeterStateId wird über Runtime/Native-Kandidaten aufgelöst und nach dem neuesten verfügbaren State-Zeitstempel ausgewählt, um veraltete importierte IDs zu vermeiden"
+      },
       "0.1.32": {
         "en": "Run own/foreign subscriptions in background, refresh regulation.enabled directly in loop, and add history setup timeout guard to keep startup non-blocking",
         "de": "Eigene/fremde Subscriptions im Hintergrund ausgeführt, regulation.enabled direkt in der Schleife aktualisiert und History-Setup mit Timeout abgesichert, damit Startup nicht blockiert"
