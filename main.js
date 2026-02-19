@@ -211,22 +211,31 @@ class EcoflowPowerControl extends utils.Adapter {
 
         if (id === `${this.namespace}.commands.testConnection`) {
             if (state.ack) return;
-            await this.setStateAsync('commands.testConnection', state.val, true);
-            await this._runTestConnectionFromState(state.val);
+            try {
+                await this._runTestConnectionFromState(state.val);
+            } finally {
+                await this.setStateAsync('commands.testConnection', '', true);
+            }
             return;
         }
 
         if (id === `${this.namespace}.commands.importLegacyScript`) {
             if (state.ack) return;
-            await this.setStateAsync('commands.importLegacyScript', state.val, true);
-            await this._runImportFromState(state.val);
+            try {
+                await this._runImportFromState(state.val);
+            } finally {
+                await this.setStateAsync('commands.importLegacyScript', '', true);
+            }
             return;
         }
 
         if (id === `${this.namespace}.commands.resetAllSettings`) {
             if (state.ack) return;
-            await this.setStateAsync('commands.resetAllSettings', state.val, true);
-            await this._runResetAllFromState();
+            try {
+                await this._runResetAllFromState();
+            } finally {
+                await this.setStateAsync('commands.resetAllSettings', false, true);
+            }
             return;
         }
 
@@ -964,6 +973,9 @@ class EcoflowPowerControl extends utils.Adapter {
             }
 
             instanceObj.native = this._getDefaultNativeConfig();
+            await this.setStateAsync('commands.resetAllSettings', false, true);
+            await this.setStateAsync('commands.importLegacyScript', '', true);
+            await this.setStateAsync('commands.testConnection', '', true);
             await this.setForeignObjectAsync(instanceObjectId, instanceObj);
 
             const message = 'All adapter settings reset to defaults. Adapter will restart now.';

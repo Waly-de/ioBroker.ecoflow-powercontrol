@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.16",
+    "version": "0.1.17",
     "news": {
+      "0.1.17": {
+        "en": "Fix command button retriggering: test/import/reset states are reset after execution so repeated clicks work reliably",
+        "de": "Fix für wiederholte Button-Klicks: Test/Import/Reset-States werden nach Ausführung zurückgesetzt, damit erneutes Auslösen zuverlässig funktioniert"
+      },
       "0.1.16": {
         "en": "Fix auto-import restart loop, switch EcoFlow admin tab to ef* compatibility keys, and add reset-all settings button",
         "de": "Auto-Import-Reset-Schleife behoben, EcoFlow-Admin-Tab auf kompatible ef*-Keys umgestellt und Reset-Button für alle Einstellungen ergänzt"
