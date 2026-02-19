@@ -925,13 +925,31 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
-        const candidatesRaw = [
-            runtimeCfg?.regulation?.smartmeterStateId,
-            runtimeCfg?.['regulation.smartmeterStateId'],
-            mergedCfg?.regulation?.smartmeterStateId,
-            nativeCfg?.regulation?.smartmeterStateId,
-            nativeCfg?.['regulation.smartmeterStateId']
-        ];
+        const rawSources = {
+            'runtime.regulation.smartmeterStateId': runtimeCfg?.regulation?.smartmeterStateId,
+            'runtime[regulation.smartmeterStateId]': runtimeCfg?.['regulation.smartmeterStateId'],
+            'runtime.SmartmeterID': runtimeCfg?.SmartmeterID,
+            'runtime.SmartmeterId': runtimeCfg?.SmartmeterId,
+            'runtime.smartmeterID': runtimeCfg?.smartmeterID,
+            'runtime.smartmeterId': runtimeCfg?.smartmeterId,
+
+            'merged.regulation.smartmeterStateId': mergedCfg?.regulation?.smartmeterStateId,
+
+            'native.regulation.smartmeterStateId': nativeCfg?.regulation?.smartmeterStateId,
+            'native[regulation.smartmeterStateId]': nativeCfg?.['regulation.smartmeterStateId'],
+            'native.SmartmeterID': nativeCfg?.SmartmeterID,
+            'native.SmartmeterId': nativeCfg?.SmartmeterId,
+            'native.smartmeterID': nativeCfg?.smartmeterID,
+            'native.smartmeterId': nativeCfg?.smartmeterId
+        };
+
+        for (const [source, raw] of Object.entries(rawSources)) {
+            if (raw !== undefined && raw !== null && String(raw).trim() !== '') {
+                this.log.info(`Smartmeter source candidate ${source}='${String(raw)}'`);
+            }
+        }
+
+        const candidatesRaw = Object.values(rawSources);
 
         const candidates = [];
         for (const raw of candidatesRaw) {
@@ -940,7 +958,10 @@ class EcoflowPowerControl extends utils.Adapter {
             if (!candidates.includes(id)) candidates.push(id);
         }
 
-        if (!candidates.length) return '';
+        if (!candidates.length) {
+            this.log.warn('Smartmeter resolution: no candidates found in runtime/native config.');
+            return '';
+        }
 
         let bestId = candidates[0];
         let bestTs = -1;
