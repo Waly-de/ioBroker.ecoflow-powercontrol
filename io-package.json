@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.19",
+    "version": "0.1.20",
     "news": {
+      "0.1.20": {
+        "en": "Admin jsonConfig tables switched to key-based item definitions and simplified column lists for improved compatibility",
+        "de": "Admin-jsonConfig-Tabellen auf key-basierte Item-Definitionen und vereinfachte Spaltenlisten umgestellt für bessere Kompatibilität"
+      },
       "0.1.19": {
         "en": "Hard reset now removes full adapter object/state tree and then restores default native config for a clean start",
         "de": "Hard-Reset löscht jetzt den kompletten Objekt-/State-Baum des Adapters und stellt danach die Default-Native-Konfiguration für einen sauberen Neustart wieder her"
