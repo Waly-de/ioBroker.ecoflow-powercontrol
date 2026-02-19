@@ -54,6 +54,7 @@ class EcoflowPowerControl extends utils.Adapter {
         const rawSmartmeter = cfg?.regulation?.smartmeterStateId;
         const normalizedSmartmeter = this._normalizeStateIdInput(rawSmartmeter);
         this.log.info(`Smartmeter config loaded: raw='${rawSmartmeter || ''}' normalized='${normalizedSmartmeter || ''}'`);
+        this.log.info(`Regulation config snapshot: intervalSec=${cfg?.regulation?.intervalSec ?? ''}, smartmeterTimeoutMin=${cfg?.regulation?.smartmeterTimeoutMin ?? ''}, smartmeterFallbackPower=${cfg?.regulation?.smartmeterFallbackPower ?? ''}`);
 
         this.log.info('onReady step: create command objects (begin)');
         await this._createCommandObjects();
@@ -991,6 +992,13 @@ class EcoflowPowerControl extends utils.Adapter {
         const leaf = parts[parts.length - 1];
         const current = node[leaf];
         const currentMissing = current === undefined || current === null || current === '';
+        const newMissing = value === undefined || value === null || value === '';
+
+        // Important for mixed config styles (nested + flat keys):
+        // do not overwrite a non-empty value with an empty flat fallback value.
+        if (preferNewValue && newMissing && !currentMissing) {
+            return;
+        }
 
         if (preferNewValue || currentMissing) {
             node[leaf] = value;

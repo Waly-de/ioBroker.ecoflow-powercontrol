@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.37",
+    "version": "0.1.38",
     "news": {
+      "0.1.38": {
+        "en": "Fix config normalization: empty flat keys no longer overwrite non-empty nested values (affects regulation and other tabs), plus regulation snapshot diagnostics",
+        "de": "Konfig-Normalisierung korrigiert: leere flache Keys überschreiben keine nicht-leeren verschachtelten Werte mehr (betrifft Regelung und weitere Tabs), plus Regulation-Snapshot-Diagnose"
+      },
       "0.1.37": {
         "en": "Fix strict smartmeter selection to prioritize runtime admin value over native fallback and log runtime/native source values",
         "de": "Strikte Smartmeter-Auswahl korrigiert: Runtime-Adminwert hat jetzt Vorrang vor Native-Fallback; Runtime/Native-Quellwerte werden geloggt"
