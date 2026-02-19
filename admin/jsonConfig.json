@@ -16,6 +16,138 @@
           "label": "inverters",
           "noDelete": false,
           "noAdd": false,
+          "items": [
+            {
+              "attr": "id",
+              "type": "text",
+              "title": "col_inv_id",
+              "width": "110px"
+            },
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_inv_name",
+              "width": "120px"
+            },
+            {
+              "attr": "type",
+              "type": "select",
+              "title": "col_inv_type",
+              "options": [
+                { "value": "generic", "label": "Generic" },
+                { "value": "ecoflow", "label": "EcoFlow PS" }
+              ],
+              "width": "120px",
+              "default": "generic"
+            },
+            {
+              "attr": "maxPower",
+              "type": "number",
+              "title": "col_inv_maxpower",
+              "width": "80px",
+              "default": 800
+            },
+            {
+              "attr": "regulation",
+              "type": "checkbox",
+              "title": "col_inv_regulation",
+              "width": "70px",
+              "default": true
+            },
+            {
+              "attr": "hasBat",
+              "type": "checkbox",
+              "title": "col_inv_hasbat",
+              "width": "70px",
+              "default": true
+            },
+            {
+              "attr": "outputStateId",
+              "type": "text",
+              "title": "col_inv_outputstateid",
+              "width": "220px"
+            },
+            {
+              "attr": "setOutputStateId",
+              "type": "text",
+              "title": "col_inv_setoutputstateid",
+              "width": "220px"
+            },
+            {
+              "attr": "batterySOCStateId",
+              "type": "text",
+              "title": "col_inv_batsocstateid",
+              "width": "220px"
+            },
+            {
+              "attr": "pvPowerStateId",
+              "type": "text",
+              "title": "col_inv_pvstateid",
+              "width": "220px"
+            },
+            {
+              "attr": "setPriorityStateId",
+              "type": "text",
+              "title": "col_inv_setpriostateid",
+              "width": "220px"
+            },
+            {
+              "attr": "battPozOn",
+              "type": "number",
+              "title": "col_inv_batpozon",
+              "width": "80px",
+              "default": 95
+            },
+            {
+              "attr": "battPozOff",
+              "type": "number",
+              "title": "col_inv_batpozoff",
+              "width": "80px",
+              "default": 90
+            },
+            {
+              "attr": "battOnSwitchPrio",
+              "type": "checkbox",
+              "title": "col_inv_switchprio",
+              "width": "70px",
+              "default": false
+            },
+            {
+              "attr": "prioOffOnDemand",
+              "type": "number",
+              "title": "col_inv_priooffondemand",
+              "width": "80px",
+              "default": 0
+            },
+            {
+              "attr": "lowBatLimitPozOn",
+              "type": "number",
+              "title": "col_inv_lowbatlimitpozon",
+              "width": "80px",
+              "default": 10
+            },
+            {
+              "attr": "lowBatLimitPozOff",
+              "type": "number",
+              "title": "col_inv_lowbatlimitpozoff",
+              "width": "80px",
+              "default": 20
+            },
+            {
+              "attr": "lowBatLimit",
+              "type": "number",
+              "title": "col_inv_lowbatlimit",
+              "width": "80px",
+              "default": 100
+            },
+            {
+              "attr": "regulationOffPower",
+              "type": "number",
+              "title": "col_inv_regulationoffpower",
+              "width": "90px",
+              "default": 0
+            }
+          ],
           "columns": [
             {
               "attr": "id",
@@ -159,6 +291,48 @@
           "label": "additionalpower_label",
           "noDelete": false,
           "noAdd": false,
+          "items": [
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_ap_name",
+              "width": "150px"
+            },
+            {
+              "attr": "id",
+              "type": "text",
+              "title": "col_ap_stateid",
+              "width": "280px"
+            },
+            {
+              "attr": "factor",
+              "type": "number",
+              "title": "col_ap_factor",
+              "width": "80px",
+              "default": 1
+            },
+            {
+              "attr": "offset",
+              "type": "number",
+              "title": "col_ap_offset",
+              "width": "80px",
+              "default": 0
+            },
+            {
+              "attr": "noFeedIn",
+              "type": "checkbox",
+              "title": "col_ap_nofeedin",
+              "width": "80px",
+              "default": false
+            },
+            {
+              "attr": "noPV",
+              "type": "checkbox",
+              "title": "col_ap_nopv",
+              "width": "70px",
+              "default": false
+            }
+          ],
           "columns": [
             {
               "attr": "name",
@@ -358,6 +532,42 @@
               "label": "ecoflow_devices",
               "noDelete": false,
               "noAdd": false,
+              "items": [
+                {
+                  "attr": "serial",
+                  "type": "text",
+                  "title": "col_ef_serial",
+                  "width": "200px",
+                  "default": "XXXXXXXXXXXXX"
+                },
+                {
+                  "attr": "name",
+                  "type": "text",
+                  "title": "col_ef_name",
+                  "width": "150px"
+                },
+                {
+                  "attr": "typ",
+                  "type": "select",
+                  "title": "col_ef_typ",
+                  "options": [
+                    { "value": "PS", "label": "PowerStream (PS)" },
+                    { "value": "DM", "label": "DELTA Max (DM)" },
+                    { "value": "D2", "label": "DELTA 2 (D2)" },
+                    { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
+                    { "value": "SM", "label": "Smart Plug (SM)" }
+                  ],
+                  "width": "180px",
+                  "default": "PS"
+                },
+                {
+                  "attr": "subscribe",
+                  "type": "checkbox",
+                  "title": "col_ef_subscribe",
+                  "width": "90px",
+                  "default": true
+                }
+              ],
               "columns": [
                 {
                   "attr": "serial",
