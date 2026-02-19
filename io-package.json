@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.6",
+    "version": "0.1.7",
     "news": {
+      "0.1.7": {
+        "en": "Fix EcoFlow connection handling according to legacy script and add old-script config import in admin",
+        "de": "EcoFlow-Verbindungslogik am Legacy-Script ausgerichtet und Import alter Script-Konfiguration in Admin ergänzt"
+      },
       "0.1.6": {
         "en": "Add detailed EcoFlow connection logging and admin test-connection button",
         "de": "Detailliertes EcoFlow-Verbindungslogging und Admin-Button zum Verbindungstest ergänzt"
@@ -111,7 +115,8 @@
       "email": "",
       "password": "",
       "reconnectMin": 30,
-      "devices": []
+      "devices": [],
+      "legacyScriptImport": ""
     },
     "advanced": {
       "debug": false,

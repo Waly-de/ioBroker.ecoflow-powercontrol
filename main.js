@@ -1,6 +1,7 @@
 'use strict';
 
 const utils = require('@iobroker/adapter-core');
+const vm = require('vm');
 const EcoflowMqtt = require('./lib/ecoflow-mqtt');
 const Regulation = require('./lib/regulation');
 
@@ -201,7 +202,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
     async _onMessage(obj) {
         if (!obj || !obj.command) return;
-        if (obj.command !== 'testEcoflowConnection') return;
+        if (obj.command !== 'testEcoflowConnection' && obj.command !== 'importOldScriptSettings') return;
 
         const respond = payload => {
             if (obj.callback) {
@@ -219,34 +220,301 @@ class EcoflowPowerControl extends utils.Adapter {
                 }
             }
 
-            const email = String(message.email || this.config.ecoflow?.email || '').trim();
-            const password = String(message.password || this.config.ecoflow?.password || '').trim();
-            const reconnectMin = Number(message.reconnectMin || this.config.ecoflow?.reconnectMin || 30) || 30;
+            if (obj.command === 'testEcoflowConnection') {
+                const email = String(message.email || this.config.ecoflow?.email || '').trim();
+                const password = String(message.password || this.config.ecoflow?.password || '').trim();
+                const reconnectMin = Number(message.reconnectMin || this.config.ecoflow?.reconnectMin || 30) || 30;
 
-            this.log.info('EcoFlow MQTT test connection requested from admin.');
+                this.log.info('EcoFlow MQTT test connection requested from admin.');
 
-            if (!email || !password) {
-                throw new Error('EcoFlow credentials missing. Please enter email and password first.');
+                if (!email || !password) {
+                    throw new Error('EcoFlow credentials missing. Please enter email and password first.');
+                }
+
+                const testCfg = {
+                    ...(this.config.ecoflow || {}),
+                    email,
+                    password,
+                    reconnectMin,
+                    devices: Array.isArray(this.config.ecoflow?.devices) ? this.config.ecoflow.devices : []
+                };
+
+                let tester = null;
+                try {
+                    tester = new EcoflowMqtt(this, { configOverride: testCfg, testMode: true });
+                    const result = await tester.testConnection();
+                    this.log.info(`EcoFlow MQTT test successful (${result.protocol}://${result.url}:${result.port}, userId=${result.userId}).`);
+                    respond({ test_ok: `${result.protocol}://${result.url}:${result.port}` });
+                } finally {
+                    if (tester) {
+                        await tester.stop();
+                    }
+                }
+                return;
             }
 
-            const testCfg = {
-                ...(this.config.ecoflow || {}),
-                email,
-                password,
-                reconnectMin,
-                devices: Array.isArray(this.config.ecoflow?.devices) ? this.config.ecoflow.devices : []
-            };
+            if (obj.command === 'importOldScriptSettings') {
+                const script = String(message.script || '').trim();
+                if (!script) {
+                    throw new Error('No script content provided. Please paste the old script first.');
+                }
 
-            const tester = new EcoflowMqtt(this, { configOverride: testCfg, testMode: true });
-            const result = await tester.testConnection();
-            await tester.stop();
+                this.log.info('Legacy script import requested from admin. Parsing ConfigData...');
+                const legacyConfig = this._parseLegacyScriptConfig(script);
+                const patch = this._mapLegacyConfigToNative(legacyConfig);
+                const native = this._deepMerge(JSON.parse(JSON.stringify(this.config || {})), patch);
 
-            this.log.info(`EcoFlow MQTT test successful (${result.protocol}://${result.url}:${result.port}, userId=${result.userId}).`);
-            respond({ test_ok: `${result.protocol}://${result.url}:${result.port}` });
+                const importedDevices = Array.isArray(native.ecoflow?.devices) ? native.ecoflow.devices.length : 0;
+                const importedInverters = Array.isArray(native.inverters) ? native.inverters.length : 0;
+                this.log.info(`Legacy script import successful (devices: ${importedDevices}, inverters: ${importedInverters}).`);
+
+                respond({
+                    native,
+                    saveConfig: true,
+                    import_ok: `devices:${importedDevices};inverters:${importedInverters}`
+                });
+            }
         } catch (err) {
-            this.log.error(`EcoFlow MQTT test failed: ${err.message}`);
-            respond({ test_err: err.message });
+            if (obj.command === 'testEcoflowConnection') {
+                this.log.error(`EcoFlow MQTT test failed: ${err.message}`);
+                respond({ test_err: err.message });
+            } else if (obj.command === 'importOldScriptSettings') {
+                this.log.error(`Legacy script import failed: ${err.message}`);
+                respond({ import_err: err.message });
+            }
         }
+    }
+
+    _parseLegacyScriptConfig(scriptText) {
+        const marker = 'var ConfigData';
+        const markerIndex = scriptText.lastIndexOf(marker);
+        if (markerIndex === -1) {
+            throw new Error('ConfigData block not found in script.');
+        }
+
+        const startBrace = scriptText.indexOf('{', markerIndex);
+        if (startBrace === -1) {
+            throw new Error('ConfigData object start not found.');
+        }
+
+        let depth = 0;
+        let inString = false;
+        let stringQuote = '';
+        let escape = false;
+        let inLineComment = false;
+        let inBlockComment = false;
+        let endBrace = -1;
+
+        for (let i = startBrace; i < scriptText.length; i++) {
+            const ch = scriptText[i];
+            const next = i + 1 < scriptText.length ? scriptText[i + 1] : '';
+
+            if (inLineComment) {
+                if (ch === '\n') inLineComment = false;
+                continue;
+            }
+            if (inBlockComment) {
+                if (ch === '*' && next === '/') {
+                    inBlockComment = false;
+                    i++;
+                }
+                continue;
+            }
+
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                    continue;
+                }
+                if (ch === '\\') {
+                    escape = true;
+                    continue;
+                }
+                if (ch === stringQuote) {
+                    inString = false;
+                    stringQuote = '';
+                }
+                continue;
+            }
+
+            if (ch === '/' && next === '/') {
+                inLineComment = true;
+                i++;
+                continue;
+            }
+            if (ch === '/' && next === '*') {
+                inBlockComment = true;
+                i++;
+                continue;
+            }
+
+            if (ch === '"' || ch === '\'' || ch === '`') {
+                inString = true;
+                stringQuote = ch;
+                continue;
+            }
+
+            if (ch === '{') {
+                depth++;
+            } else if (ch === '}') {
+                depth--;
+                if (depth === 0) {
+                    endBrace = i;
+                    break;
+                }
+            }
+        }
+
+        if (endBrace === -1) {
+            throw new Error('ConfigData object end not found.');
+        }
+
+        const objectLiteral = scriptText.slice(startBrace, endBrace + 1);
+        let parsed;
+        try {
+            parsed = vm.runInNewContext(`(${objectLiteral})`, {}, { timeout: 1000 });
+        } catch (e) {
+            throw new Error(`Could not parse ConfigData object: ${e.message}`);
+        }
+
+        if (!parsed || typeof parsed !== 'object') {
+            throw new Error('Parsed ConfigData is not an object.');
+        }
+        return parsed;
+    }
+
+    _mapLegacyConfigToNative(oldCfg) {
+        const toNumber = (value, fallback) => {
+            const numberValue = Number(value);
+            return Number.isFinite(numberValue) ? numberValue : fallback;
+        };
+
+        const patch = {
+            ecoflow: {},
+            regulation: {},
+            excessCharge: {},
+            advanced: {}
+        };
+
+        if (oldCfg.email !== undefined) patch.ecoflow.email = String(oldCfg.email || '');
+        if (oldCfg.passwort !== undefined) patch.ecoflow.password = String(oldCfg.passwort || '');
+        if (oldCfg.ReconnectMin !== undefined) patch.ecoflow.reconnectMin = toNumber(oldCfg.ReconnectMin, 30);
+
+        const devices = Array.isArray(oldCfg.seriennummern)
+            ? oldCfg.seriennummern
+                .filter(device => device && device.seriennummer)
+                .map(device => ({
+                    serial: String(device.seriennummer || ''),
+                    name: String(device.name || device.seriennummer || ''),
+                    typ: String(device.typ || 'PS'),
+                    subscribe: device.subscribe !== undefined ? !!device.subscribe : true
+                }))
+            : null;
+        if (devices) patch.ecoflow.devices = devices;
+
+        if (oldCfg.SmartmeterID !== undefined) patch.regulation.smartmeterStateId = String(oldCfg.SmartmeterID || '');
+        if (oldCfg.SmartmeterTimeoutMin !== undefined) patch.regulation.smartmeterTimeoutMin = toNumber(oldCfg.SmartmeterTimeoutMin, 4);
+        if (oldCfg.SmartmeterFallbackPower !== undefined) patch.regulation.smartmeterFallbackPower = toNumber(oldCfg.SmartmeterFallbackPower, 150);
+        if (oldCfg.RegulationIntervalSec !== undefined) patch.regulation.intervalSec = toNumber(oldCfg.RegulationIntervalSec, 15);
+        if (oldCfg.BasePowerOffset !== undefined) patch.regulation.basePowerOffset = toNumber(oldCfg.BasePowerOffset, 30);
+        if (oldCfg.MinValueMin !== undefined) patch.regulation.minValueMin = toNumber(oldCfg.MinValueMin, 2);
+        if (oldCfg.MinValueAg !== undefined) patch.regulation.minValueAg = toNumber(oldCfg.MinValueAg, 0);
+        if (oldCfg.RegulationMultiPsMode !== undefined) patch.regulation.multiPsMode = toNumber(oldCfg.RegulationMultiPsMode, 0);
+        if (oldCfg.SerialReverse !== undefined) patch.regulation.serialReverse = !!oldCfg.SerialReverse;
+        if (oldCfg.Zusatzpower_Offset !== undefined) patch.regulation.zusatzpowerOffset = toNumber(oldCfg.Zusatzpower_Offset, 10);
+        if (oldCfg.Regulation !== undefined) patch.regulation.enabled = !!oldCfg.Regulation;
+
+        const inverters = Array.isArray(oldCfg.seriennummern)
+            ? oldCfg.seriennummern
+                .filter(device => device && device.typ === 'PS' && device.seriennummer)
+                .map(device => ({
+                    id: String(device.seriennummer),
+                    name: String(device.name || device.seriennummer),
+                    type: 'ecoflow',
+                    maxPower: toNumber(device.MaxPower, 800),
+                    regulation: device.regulation !== undefined ? !!device.regulation : true,
+                    hasBat: device.hasBat !== undefined ? !!device.hasBat : true,
+                    outputStateId: '',
+                    setOutputStateId: '',
+                    batterySOCStateId: '',
+                    pvPowerStateId: '',
+                    setPriorityStateId: '',
+                    battPozOn: toNumber(device.battPozOn, 95),
+                    battPozOff: toNumber(device.battPozOff, 90),
+                    battOnSwitchPrio: device.battOnSwitchPrio !== undefined ? !!device.battOnSwitchPrio : false,
+                    prioOffOnDemand: toNumber(device.prioOffOnDemand, 0),
+                    lowBatLimitPozOn: toNumber(device.lowBatLimitPozOn, 10),
+                    lowBatLimitPozOff: toNumber(device.lowBatLimitPozOff, 20),
+                    lowBatLimit: toNumber(device.lowBatLimit, 100),
+                    regulationOffPower: toNumber(device.RegulationOffPower, 0)
+                }))
+            : null;
+        if (inverters) patch.inverters = inverters;
+
+        const additionalPower = Array.isArray(oldCfg.AdditionalPower)
+            ? oldCfg.AdditionalPower
+                .filter(item => item && item.id)
+                .map(item => ({
+                    name: String(item.name || ''),
+                    id: String(item.id || ''),
+                    factor: toNumber(item.factor, 1),
+                    offset: toNumber(item.offset, 0),
+                    noFeedIn: item.noFeedIn !== undefined ? !!item.noFeedIn : !!item.NoFeedIn,
+                    noPV: item.noPV !== undefined ? !!item.noPV : !!item.NoPV
+                }))
+            : null;
+        if (additionalPower) patch.additionalPower = additionalPower;
+
+        if (oldCfg.ExcessCharge !== undefined) patch.excessCharge.enabled = !!oldCfg.ExcessCharge;
+        if (oldCfg.ExcessChargePowerID !== undefined) patch.excessCharge.powerStateId = String(oldCfg.ExcessChargePowerID || '');
+        if (oldCfg.ExcessChargePowerBatSocID !== undefined) patch.excessCharge.batSocStateId = String(oldCfg.ExcessChargePowerBatSocID || '');
+        if (oldCfg.ExcessActualPowerID !== undefined) patch.excessCharge.actualPowerStateId = String(oldCfg.ExcessActualPowerID || '');
+        if (oldCfg.ExcessChargeSwitchID !== undefined) patch.excessCharge.switchStateId = String(oldCfg.ExcessChargeSwitchID || '');
+        if (oldCfg.ExcessChargeSwitchOn !== undefined) patch.excessCharge.switchOnValue = String(oldCfg.ExcessChargeSwitchOn);
+        if (oldCfg.ExcessChargeSwitchOff !== undefined) patch.excessCharge.switchOffValue = String(oldCfg.ExcessChargeSwitchOff);
+        if (oldCfg.ExcessChargeMaxPower !== undefined) patch.excessCharge.maxPower = toNumber(oldCfg.ExcessChargeMaxPower, 2000);
+        if (oldCfg.ExcessChargeOffsetPower !== undefined) patch.excessCharge.offsetPower = toNumber(oldCfg.ExcessChargeOffsetPower, 0);
+        if (oldCfg.ExcessChargeStartPower !== undefined) patch.excessCharge.startPower = toNumber(oldCfg.ExcessChargeStartPower, 50);
+        if (oldCfg.ExcessChargeStopPower !== undefined) patch.excessCharge.stopPower = toNumber(oldCfg.ExcessChargeStopPower, 0);
+        if (oldCfg.ExcessChargeStartPowerDurationMin !== undefined) patch.excessCharge.startDurationMin = toNumber(oldCfg.ExcessChargeStartPowerDurationMin, 1);
+        if (oldCfg.ExcessChargeMinRegulatePause !== undefined) patch.excessCharge.minRegulatePauseMin = toNumber(oldCfg.ExcessChargeMinRegulatePause, 1);
+        if (oldCfg.ExcessChargeRegulateSteps !== undefined) patch.excessCharge.regulateSteps = toNumber(oldCfg.ExcessChargeRegulateSteps, 100);
+        if (oldCfg.ExcessChargeBatSocMax !== undefined) patch.excessCharge.batSocMax = toNumber(oldCfg.ExcessChargeBatSocMax, 95);
+        if (oldCfg.ExcessChargeBatSocOff !== undefined) patch.excessCharge.batSocOff = toNumber(oldCfg.ExcessChargeBatSocOff, 100);
+        if (oldCfg.ExcessChargeSwitchMin !== undefined) patch.excessCharge.switchMinMin = toNumber(oldCfg.ExcessChargeSwitchMin, 5);
+
+        if (oldCfg.Debug !== undefined) patch.advanced.debug = !!oldCfg.Debug;
+        if (oldCfg.mlog !== undefined) patch.advanced.mlog = !!oldCfg.mlog;
+        if (oldCfg.AdditionalPowerAvgPeriod !== undefined) patch.advanced.avgPeriodMs = toNumber(oldCfg.AdditionalPowerAvgPeriod, 15000);
+
+        const hasEcoflowCredentials = !!(patch.ecoflow.email || patch.ecoflow.password || (patch.ecoflow.devices && patch.ecoflow.devices.length));
+        if (hasEcoflowCredentials) {
+            patch.ecoflow.enabled = true;
+        }
+
+        return patch;
+    }
+
+    _deepMerge(target, source) {
+        if (!source || typeof source !== 'object') return target;
+        if (!target || typeof target !== 'object') return JSON.parse(JSON.stringify(source));
+
+        for (const key of Object.keys(source)) {
+            const sourceValue = source[key];
+            if (sourceValue === undefined) continue;
+
+            if (Array.isArray(sourceValue)) {
+                target[key] = JSON.parse(JSON.stringify(sourceValue));
+            } else if (sourceValue && typeof sourceValue === 'object') {
+                const targetValue = target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])
+                    ? target[key]
+                    : {};
+                target[key] = this._deepMerge(targetValue, sourceValue);
+            } else {
+                target[key] = sourceValue;
+            }
+        }
+        return target;
     }
 
     // ──────────────────────────────────────────────────────────── object creation

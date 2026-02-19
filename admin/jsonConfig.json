@@ -541,6 +541,40 @@
           "type": "staticText",
           "text": "ecoflow_test_hint"
         },
+        "efImportHeader": {
+          "type": "staticText",
+          "text": "ecoflow_import_header"
+        },
+        "efLegacyScriptImport": {
+          "type": "text",
+          "label": "ecoflow_import_paste",
+          "attr": "ecoflow.legacyScriptImport",
+          "minRows": 8,
+          "maxRows": 20
+        },
+        "efImportSettings": {
+          "type": "sendTo",
+          "label": "ecoflow_import_button",
+          "command": "importOldScriptSettings",
+          "data": {
+            "script": "${data.ecoflow.legacyScriptImport}"
+          },
+          "variant": "contained",
+          "icon": "send",
+          "showProcess": true,
+          "timeout": 60000,
+          "useNative": true,
+          "result": {
+            "import_ok": "ecoflow_import_success"
+          },
+          "error": {
+            "import_err": "ecoflow_import_error"
+          }
+        },
+        "efImportHint": {
+          "type": "staticText",
+          "text": "ecoflow_import_hint"
+        },
         "efDevicesHeader": {
           "type": "staticText",
           "text": "ecoflow_devices_header"
