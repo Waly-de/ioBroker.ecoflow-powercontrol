@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.21",
+    "version": "0.1.22",
     "news": {
+      "0.1.22": {
+        "en": "Enable common.messagebox so admin sendTo commands are delivered to adapter onMessage",
+        "de": "common.messagebox aktiviert, damit Admin-sendTo-Kommandos im Adapter über onMessage ankommen"
+      },
       "0.1.21": {
         "en": "Switch admin test/import/reset buttons to sendTo with backend result mapping, add explicit command-received logs, and mirror outcomes to commands.lastResult",
         "de": "Admin-Buttons für Test/Import/Reset auf sendTo mit Ergebnis-Mapping umgestellt, explizite Logs bei Kommandoeingang ergänzt und Ergebnisse nach commands.lastResult gespiegelt"
@@ -107,6 +111,7 @@
     "enabled": true,
     "platform": "Javascript/Node.js",
     "mode": "daemon",
+    "messagebox": true,
     "type": "energy",
     "allowInit": true,
     "connectionType": "cloud",
