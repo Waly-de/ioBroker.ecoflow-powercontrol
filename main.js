@@ -925,14 +925,21 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
-        const selected = this._normalizeStateIdInput(
-            nativeCfg?.regulation?.smartmeterStateId ||
-            nativeCfg?.['regulation.smartmeterStateId'] ||
+        const runtimeValue = this._normalizeStateIdInput(
             runtimeCfg?.regulation?.smartmeterStateId ||
             runtimeCfg?.['regulation.smartmeterStateId'] ||
-            mergedCfg?.regulation?.smartmeterStateId ||
             ''
         );
+        const nativeValue = this._normalizeStateIdInput(
+            nativeCfg?.regulation?.smartmeterStateId ||
+            nativeCfg?.['regulation.smartmeterStateId'] ||
+            ''
+        );
+        const mergedValue = this._normalizeStateIdInput(mergedCfg?.regulation?.smartmeterStateId || '');
+
+        this.log.info(`Smartmeter strict-config sources: runtime='${runtimeValue}' native='${nativeValue}' merged='${mergedValue}'`);
+
+        const selected = runtimeValue || nativeValue || mergedValue || '';
 
         if (selected) {
             this.log.info(`Smartmeter strict-config selected: ${selected}`);

@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.36",
+    "version": "0.1.37",
     "news": {
+      "0.1.37": {
+        "en": "Fix strict smartmeter selection to prioritize runtime admin value over native fallback and log runtime/native source values",
+        "de": "Strikte Smartmeter-Auswahl korrigiert: Runtime-Adminwert hat jetzt Vorrang vor Native-Fallback; Runtime/Native-Quellwerte werden geloggt"
+      },
       "0.1.36": {
         "en": "Enforce strict smartmeter source: only regulation.smartmeterStateId from adapter config is used; legacy SmartmeterID keys are ignored",
         "de": "Strikte Smartmeter-Quelle erzwungen: Es wird nur regulation.smartmeterStateId aus der Adapter-Konfiguration verwendet; Legacy-SmartmeterID-Keys werden ignoriert"
