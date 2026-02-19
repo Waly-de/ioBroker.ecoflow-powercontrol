@@ -24,6 +24,12 @@ class EcoflowPowerControl extends utils.Adapter {
 
         /** Heartbeat interval (EcoFlow PS devices) */
         this.heartbeatInterval = null;
+        
+        /** Periodic realPower watcher interval */
+        this.realPowerWatchInterval = null;
+        
+        /** Last seen smartmeter timestamp for watcher */
+        this.lastSmartmeterTs = 0;
 
         /** Foreign state IDs we subscribed to */
         this.foreignSubscriptions = new Set();
@@ -149,6 +155,7 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         await this._initializeRealPowerFromSmartmeter(cfg);
+        this._startRealPowerWatcher(cfg);
 
         // ── 8. Ensure history logging for regulation.realPower
         try {
@@ -187,6 +194,10 @@ class EcoflowPowerControl extends utils.Adapter {
             if (this.heartbeatInterval) {
                 clearInterval(this.heartbeatInterval);
                 this.heartbeatInterval = null;
+            }
+            if (this.realPowerWatchInterval) {
+                clearInterval(this.realPowerWatchInterval);
+                this.realPowerWatchInterval = null;
             }
             if (this.ecoflowMqtt) {
                 await this.ecoflowMqtt.stop();
@@ -280,10 +291,9 @@ class EcoflowPowerControl extends utils.Adapter {
         const cfg = this.config;
         const configuredSmartmeterId = this._normalizeStateIdInput(cfg?.regulation?.smartmeterStateId);
         if (configuredSmartmeterId && id === configuredSmartmeterId) {
-            const gridPower = Number(state.val) || 0;
             if (this.regulation) {
                 // Non-blocking – updateRealPower has its own debounce
-                this.regulation.updateRealPower(gridPower).catch(err => {
+                this.regulation.updateRealPower().catch(err => {
                     this.log.debug(`updateRealPower error: ${err.message}`);
                 });
             }
@@ -980,11 +990,33 @@ class EcoflowPowerControl extends utils.Adapter {
             }
 
             const gridPower = Number(smartmeterState.val) || 0;
-            await this.regulation.updateRealPower(gridPower);
+            this.lastSmartmeterTs = Number(smartmeterState.ts) || 0;
+            await this.regulation.updateRealPower();
             this.log.info(`Initial realPower update done from smartmeter (${smartmeterStateId}=${gridPower}).`);
         } catch (err) {
             this.log.warn(`Initial smartmeter read failed (${smartmeterStateId}): ${err.message}`);
         }
+    }
+        if (this.realPowerWatchInterval || !this.regulation) return;
+        const smartmeterStateId = this._normalizeStateIdInput(cfg?.regulation?.smartmeterStateId);
+        if (!smartmeterStateId) return;
+
+        this.realPowerWatchInterval = setInterval(async () => {
+            try {
+                const smartmeterState = await this.getForeignStateAsync(smartmeterStateId);
+                if (!smartmeterState) return;
+
+                const ts = Number(smartmeterState.ts) || 0;
+                if (ts <= this.lastSmartmeterTs) return;
+
+                this.lastSmartmeterTs = ts;
+                await this.regulation.updateRealPower();
+            } catch (err) {
+                this.log.debug(`RealPower watcher error: ${err.message}`);
+            }
+        }, 5000);
+
+        this.log.info(`RealPower watcher started for ${smartmeterStateId} (5s).`);
     }
 
     async _runTestConnectionFromState(rawPayload) {
@@ -1088,6 +1120,10 @@ class EcoflowPowerControl extends utils.Adapter {
             if (this.heartbeatInterval) {
                 clearInterval(this.heartbeatInterval);
                 this.heartbeatInterval = null;
+            }
+            if (this.realPowerWatchInterval) {
+                clearInterval(this.realPowerWatchInterval);
+                this.realPowerWatchInterval = null;
             }
 
             const instanceObjectId = `system.adapter.${this.namespace}`;

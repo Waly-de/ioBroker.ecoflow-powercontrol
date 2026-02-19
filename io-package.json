@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.24",
+    "version": "0.1.25",
     "news": {
+      "0.1.25": {
+        "en": "Add periodic realPower watcher independent of state-change subscriptions, read smartmeter value at execution time, and align LastRealPower handling with legacy script",
+        "de": "Periodischen realPower-Watcher unabhängig von State-Change-Subscriptions ergänzt, Smartmeterwert zur Ausführungszeit gelesen und LastRealPower-Verhalten ans Legacy-Script angeglichen"
+      },
       "0.1.24": {
         "en": "Normalize Smartmeter state IDs from config/import snippets, add subscription diagnostics, and fix realPower first-value handling for negative readings",
         "de": "Smartmeter-State-IDs aus Konfig/Import-Snippets normalisiert, Subscription-Diagnose ergänzt und realPower-Erstwertbehandlung bei negativen Werten korrigiert"
