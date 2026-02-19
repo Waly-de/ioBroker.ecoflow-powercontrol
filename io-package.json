@@ -6,7 +6,7 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.40",
+    "version": "0.1.41",
     "news": {
       "0.1.38": {
         "en": "Fix config normalization: empty flat keys no longer overwrite non-empty nested values (affects regulation and other tabs), plus regulation snapshot diagnostics",
@@ -171,6 +171,10 @@
       "0.1.40": {
         "en": "Fix: read smartmeterStateId from regSmStateId element key",
         "de": "Fix: Smartmeter-ID aus regSmStateId-Key lesen (ioBroker-Admin-Kompatibilität)"
+      },
+      "0.1.41": {
+        "en": "Fix reset (regSmStateId cleared), fix lastCut applied to all inverters, fix invOutputWatts timeout 90->50s",
+        "de": "Fix Reset (regSmStateId wird geleert), lastCut-Verteilung auf alle WR behoben, invOutputWatts Timeout 90->50s"
       }
     },
     "desc": {
@@ -474,5 +478,5 @@
       "native": {}
     }
   ],
-  "version": "0.1.40"
+  "version": "0.1.41"
 }

@@ -1433,6 +1433,22 @@ class EcoflowPowerControl extends utils.Adapter {
         defaults.efReconnectMin = 30;
         defaults.efDevices = [];
         defaults.efLegacyScriptImport = '';
+        // Reset legacy flat-key fields that ioBroker Admin stores separately
+        defaults.regSmStateId = '';
+        defaults.regSmTimeoutMin = 4;
+        defaults.regSmFallback = 150;
+        defaults.regIntervalSec = 15;
+        defaults.regBasePowerOffset = 30;
+        defaults.regMinValueMin = 2;
+        defaults.regMinValueAg = 0;
+        defaults.regZusatzpowerOffset = 10;
+        defaults.regMultiPsMode = 0;
+        defaults.regSerialReverse = false;
+        defaults.regHistoryAdapter = 'history';
+        defaults.regHistoryInstance = '0';
+        if (defaults.regulation && typeof defaults.regulation === 'object') {
+            defaults.regulation.smartmeterStateId = '';
+        }
         return defaults;
     }
 
