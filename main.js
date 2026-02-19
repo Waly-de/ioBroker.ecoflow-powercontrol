@@ -49,6 +49,10 @@ class EcoflowPowerControl extends utils.Adapter {
         let cfg = await this._loadEffectiveConfig();
         this.config = cfg;
 
+        const rawSmartmeter = cfg?.regulation?.smartmeterStateId;
+        const normalizedSmartmeter = this._normalizeStateIdInput(rawSmartmeter);
+        this.log.info(`Smartmeter config loaded: raw='${rawSmartmeter || ''}' normalized='${normalizedSmartmeter || ''}'`);
+
         await this._createCommandObjects();
 
         // ── 0. Startup auto-import: if legacyScriptImport contains text, parse and apply it
@@ -147,6 +151,8 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         await this._subscribeForeignStates(cfg);
+
+        await this._logSmartmeterDiagnostics(cfg, 'startup-after-subscribe');
 
         if (cfg?.regulation?.smartmeterStateId) {
             this.log.info(`Configured smartmeter state: ${cfg.regulation.smartmeterStateId}`);
@@ -291,12 +297,15 @@ class EcoflowPowerControl extends utils.Adapter {
         const cfg = this.config;
         const configuredSmartmeterId = this._normalizeStateIdInput(cfg?.regulation?.smartmeterStateId);
         if (configuredSmartmeterId && id === configuredSmartmeterId) {
+            this.log.debug(`Smartmeter stateChange matched: ${id} val=${JSON.stringify(state.val)} ts=${state.ts}`);
             if (this.regulation) {
                 // Non-blocking – updateRealPower has its own debounce
                 this.regulation.updateRealPower().catch(err => {
                     this.log.debug(`updateRealPower error: ${err.message}`);
                 });
             }
+        } else if (configuredSmartmeterId && !state.ack && id.includes('TibberPulse')) {
+            this.log.debug(`Smartmeter stateChange ignored: got=${id} expected=${configuredSmartmeterId}`);
         }
     }
 
@@ -1012,6 +1021,7 @@ class EcoflowPowerControl extends utils.Adapter {
                 if (ts <= this.lastSmartmeterTs) return;
 
                 this.lastSmartmeterTs = ts;
+                this.log.debug(`RealPower watcher tick: ${smartmeterStateId} val=${smartmeterState.val} ts=${ts}`);
                 await this.regulation.updateRealPower();
             } catch (err) {
                 this.log.debug(`RealPower watcher error: ${err.message}`);
@@ -1019,6 +1029,39 @@ class EcoflowPowerControl extends utils.Adapter {
         }, 5000);
 
         this.log.info(`RealPower watcher started for ${smartmeterStateId} (5s).`);
+    }
+
+    async _logSmartmeterDiagnostics(cfg, phase = 'runtime') {
+        const rawId = cfg?.regulation?.smartmeterStateId;
+        const smartmeterStateId = this._normalizeStateIdInput(rawId);
+
+        this.log.info(`Smartmeter diagnostics (${phase}): raw='${rawId || ''}' normalized='${smartmeterStateId || ''}'`);
+        if (!smartmeterStateId) {
+            this.log.warn(`Smartmeter diagnostics (${phase}): no smartmeterStateId configured.`);
+            return;
+        }
+
+        try {
+            const obj = await this.getForeignObjectAsync(smartmeterStateId);
+            if (!obj) {
+                this.log.warn(`Smartmeter diagnostics (${phase}): object not found: ${smartmeterStateId}`);
+            } else {
+                this.log.info(`Smartmeter diagnostics (${phase}): object exists type=${obj.type} commonType=${obj.common?.type || ''} role=${obj.common?.role || ''}`);
+            }
+        } catch (err) {
+            this.log.warn(`Smartmeter diagnostics (${phase}): object read failed for ${smartmeterStateId}: ${err.message}`);
+        }
+
+        try {
+            const state = await this.getForeignStateAsync(smartmeterStateId);
+            if (!state) {
+                this.log.warn(`Smartmeter diagnostics (${phase}): state not found: ${smartmeterStateId}`);
+            } else {
+                this.log.info(`Smartmeter diagnostics (${phase}): current state val=${JSON.stringify(state.val)} ts=${state.ts} ageSec=${((Date.now() - state.ts) / 1000).toFixed(1)}`);
+            }
+        } catch (err) {
+            this.log.warn(`Smartmeter diagnostics (${phase}): state read failed for ${smartmeterStateId}: ${err.message}`);
+        }
     }
 
     async _runTestConnectionFromState(rawPayload) {

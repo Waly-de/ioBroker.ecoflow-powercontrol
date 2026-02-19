@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.26",
+    "version": "0.1.27",
     "news": {
+      "0.1.27": {
+        "en": "Add extensive smartmeter diagnostics (raw/normalized ID, object/state checks, watcher ticks, realPower source and write logs)",
+        "de": "Umfangreiche Smartmeter-Diagnose ergänzt (raw/normalisierte ID, Objekt/State-Checks, Watcher-Ticks sowie realPower-Quelle und Schreib-Logs)"
+      },
       "0.1.26": {
         "en": "Hotfix: restore missing method declaration for realPower watcher introduced in 0.1.25",
         "de": "Hotfix: fehlende Methoden-Deklaration für den in 0.1.25 eingeführten realPower-Watcher wiederhergestellt"
