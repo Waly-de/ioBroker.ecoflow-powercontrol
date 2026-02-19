@@ -163,6 +163,10 @@
       "0.1.0": {
         "en": "Initial release – generic inverter regulation with optional EcoFlow MQTT bridge",
         "de": "Erstveröffentlichung – generische Wechselrichterregelung mit optionaler EcoFlow MQTT-Brücke"
+      },
+      "0.1.39": {
+        "en": "Dump raw this.config and instanceObj.native for smartmeter debug",
+        "de": "Raw-Config-Dump für Smartmeter-Debugging"
       }
     },
     "desc": {
@@ -465,5 +469,6 @@
       },
       "native": {}
     }
-  ]
+  ],
+  "version": "0.1.39"
 }

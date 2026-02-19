@@ -723,12 +723,27 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _loadEffectiveConfig() {
+        // --- RAW CONFIG DUMP (debug) ---
+        try {
+            const rawKeys = Object.keys(this.config || {});
+            this.log.warn(`[ConfigDump] this.config keys: ${rawKeys.join(', ')}`);
+            const smFlat = this.config?.['regulation.smartmeterStateId'];
+            const smNested = this.config?.regulation?.smartmeterStateId;
+            this.log.warn(`[ConfigDump] regulation.smartmeterStateId (flat key): '${smFlat !== undefined ? smFlat : '<undefined>'}'`);
+            this.log.warn(`[ConfigDump] this.config.regulation.smartmeterStateId (nested): '${smNested !== undefined ? smNested : '<undefined>'}'`);
+            this.log.warn(`[ConfigDump] full this.config (JSON): ${JSON.stringify(this.config || {})}`);
+        } catch (dumpErr) {
+            this.log.warn(`[ConfigDump] failed: ${dumpErr.message}`);
+        }
+        // --- END RAW CONFIG DUMP ---
+
         const runtimeCfg = this._normalizeConfig(this.config || {});
 
         let nativeCfg = {};
         try {
             const instanceObjectId = `system.adapter.${this.namespace}`;
             const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
+            this.log.warn(`[ConfigDump] instanceObj.native (JSON): ${JSON.stringify(instanceObj?.native || {})}`);
             nativeCfg = this._normalizeConfig(instanceObj?.native || {});
 
             const runtimeEco = runtimeCfg?.ecoflow || {};
