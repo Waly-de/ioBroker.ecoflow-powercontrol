@@ -414,7 +414,24 @@ class EcoflowPowerControl extends utils.Adapter {
         try {
             parsed = vm.runInNewContext(`(${objectLiteral})`, {}, { timeout: 1000 });
         } catch (e) {
-            throw new Error(`Could not parse ConfigData object: ${e.message}`);
+            try {
+                const tolerantExpression = `(() => {\n` +
+                    `  const __ctx = new Proxy({}, {\n` +
+                    `    has: () => true,\n` +
+                    `    get: (_target, key) => {\n` +
+                    `      if (key === Symbol.unscopables) return undefined;\n` +
+                    `      return undefined;\n` +
+                    `    }\n` +
+                    `  });\n` +
+                    `  with (__ctx) {\n` +
+                    `    return (${objectLiteral});\n` +
+                    `  }\n` +
+                    `})()`;
+                parsed = vm.runInNewContext(tolerantExpression, {}, { timeout: 1000 });
+                this.log.warn(`ConfigData parser fallback used due to: ${e.message}`);
+            } catch (e2) {
+                throw new Error(`Could not parse ConfigData object: ${e2.message}`);
+            }
         }
 
         if (!parsed || typeof parsed !== 'object') {

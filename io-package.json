@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.14",
+    "version": "0.1.15",
     "news": {
+      "0.1.15": {
+        "en": "Fix legacy script import parser for unresolved identifiers and align MQTT probe clientId/options closer to legacy behavior",
+        "de": "Parser-Fix für Legacy-Script-Import bei undefinierten Bezeichnern und MQTT-Probe näher ans Legacy-Verhalten (clientId/Optionen) angepasst"
+      },
       "0.1.14": {
         "en": "Add compatibility fallbacks for admin key layouts (efEmail/efPassword/efDevices/efLegacyScriptImport) and apply them to startup/import",
         "de": "Kompatibilitäts-Fallbacks für Admin-Key-Layouts ergänzt (efEmail/efPassword/efDevices/efLegacyScriptImport) und für Startup/Import aktiviert"
