@@ -501,115 +501,119 @@
           "attr": "ecoflow.enabled",
           "default": false
         },
-        "efPanel": {
-          "type": "panel",
-          "label": "ecoflow_credentials",
-          "hidden": "!data.ecoflow.enabled",
-          "items": {
-            "efEmail": {
+        "efCredentialsHeader": {
+          "type": "staticText",
+          "text": "ecoflow_credentials",
+          "hidden": "data.ecoflow.enabled !== true"
+        },
+        "efEmail": {
+          "type": "text",
+          "label": "ecoflow_email",
+          "attr": "ecoflow.email",
+          "hidden": "data.ecoflow.enabled !== true"
+        },
+        "efPassword": {
+          "type": "password",
+          "label": "ecoflow_password",
+          "attr": "ecoflow.password",
+          "hidden": "data.ecoflow.enabled !== true"
+        },
+        "efReconnectMin": {
+          "type": "number",
+          "label": "ecoflow_reconnectmin",
+          "attr": "ecoflow.reconnectMin",
+          "default": 30,
+          "hidden": "data.ecoflow.enabled !== true"
+        },
+        "efDevicesHeader": {
+          "type": "staticText",
+          "text": "ecoflow_devices_header",
+          "hidden": "data.ecoflow.enabled !== true"
+        },
+        "efDevices": {
+          "type": "table",
+          "attr": "ecoflow.devices",
+          "label": "ecoflow_devices",
+          "noDelete": false,
+          "noAdd": false,
+          "hidden": "data.ecoflow.enabled !== true",
+          "items": [
+            {
+              "attr": "serial",
               "type": "text",
-              "label": "ecoflow_email",
-              "attr": "ecoflow.email"
+              "title": "col_ef_serial",
+              "width": "200px",
+              "default": "XXXXXXXXXXXXX"
             },
-            "efPassword": {
-              "type": "password",
-              "label": "ecoflow_password",
-              "attr": "ecoflow.password"
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_ef_name",
+              "width": "150px"
             },
-            "efReconnectMin": {
-              "type": "number",
-              "label": "ecoflow_reconnectmin",
-              "attr": "ecoflow.reconnectMin",
-              "default": 30
-            },
-            "efDevicesHeader": {
-              "type": "staticText",
-              "text": "ecoflow_devices_header"
-            },
-            "efDevices": {
-              "type": "table",
-              "attr": "ecoflow.devices",
-              "label": "ecoflow_devices",
-              "noDelete": false,
-              "noAdd": false,
-              "items": [
-                {
-                  "attr": "serial",
-                  "type": "text",
-                  "title": "col_ef_serial",
-                  "width": "200px",
-                  "default": "XXXXXXXXXXXXX"
-                },
-                {
-                  "attr": "name",
-                  "type": "text",
-                  "title": "col_ef_name",
-                  "width": "150px"
-                },
-                {
-                  "attr": "typ",
-                  "type": "select",
-                  "title": "col_ef_typ",
-                  "options": [
-                    { "value": "PS", "label": "PowerStream (PS)" },
-                    { "value": "DM", "label": "DELTA Max (DM)" },
-                    { "value": "D2", "label": "DELTA 2 (D2)" },
-                    { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
-                    { "value": "SM", "label": "Smart Plug (SM)" }
-                  ],
-                  "width": "180px",
-                  "default": "PS"
-                },
-                {
-                  "attr": "subscribe",
-                  "type": "checkbox",
-                  "title": "col_ef_subscribe",
-                  "width": "90px",
-                  "default": true
-                }
+            {
+              "attr": "typ",
+              "type": "select",
+              "title": "col_ef_typ",
+              "options": [
+                { "value": "PS", "label": "PowerStream (PS)" },
+                { "value": "DM", "label": "DELTA Max (DM)" },
+                { "value": "D2", "label": "DELTA 2 (D2)" },
+                { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
+                { "value": "SM", "label": "Smart Plug (SM)" }
               ],
-              "columns": [
-                {
-                  "attr": "serial",
-                  "type": "text",
-                  "title": "col_ef_serial",
-                  "width": "200px",
-                  "default": "XXXXXXXXXXXXX"
-                },
-                {
-                  "attr": "name",
-                  "type": "text",
-                  "title": "col_ef_name",
-                  "width": "150px"
-                },
-                {
-                  "attr": "typ",
-                  "type": "select",
-                  "title": "col_ef_typ",
-                  "options": [
-                    { "value": "PS", "label": "PowerStream (PS)" },
-                    { "value": "DM", "label": "DELTA Max (DM)" },
-                    { "value": "D2", "label": "DELTA 2 (D2)" },
-                    { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
-                    { "value": "SM", "label": "Smart Plug (SM)" }
-                  ],
-                  "width": "180px",
-                  "default": "PS"
-                },
-                {
-                  "attr": "subscribe",
-                  "type": "checkbox",
-                  "title": "col_ef_subscribe",
-                  "width": "90px",
-                  "default": true
-                }
-              ]
+              "width": "180px",
+              "default": "PS"
             },
-            "efPathsHint": {
-              "type": "staticText",
-              "text": "ecoflow_statepaths_hint"
+            {
+              "attr": "subscribe",
+              "type": "checkbox",
+              "title": "col_ef_subscribe",
+              "width": "90px",
+              "default": true
             }
-          }
+          ],
+          "columns": [
+            {
+              "attr": "serial",
+              "type": "text",
+              "title": "col_ef_serial",
+              "width": "200px",
+              "default": "XXXXXXXXXXXXX"
+            },
+            {
+              "attr": "name",
+              "type": "text",
+              "title": "col_ef_name",
+              "width": "150px"
+            },
+            {
+              "attr": "typ",
+              "type": "select",
+              "title": "col_ef_typ",
+              "options": [
+                { "value": "PS", "label": "PowerStream (PS)" },
+                { "value": "DM", "label": "DELTA Max (DM)" },
+                { "value": "D2", "label": "DELTA 2 (D2)" },
+                { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
+                { "value": "SM", "label": "Smart Plug (SM)" }
+              ],
+              "width": "180px",
+              "default": "PS"
+            },
+            {
+              "attr": "subscribe",
+              "type": "checkbox",
+              "title": "col_ef_subscribe",
+              "width": "90px",
+              "default": true
+            }
+          ]
+        },
+        "efPathsHint": {
+          "type": "staticText",
+          "text": "ecoflow_statepaths_hint",
+          "hidden": "data.ecoflow.enabled !== true"
         }
       }
     },

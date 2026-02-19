@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.3",
+    "version": "0.1.4",
     "news": {
+      "0.1.4": {
+        "en": "Fix EcoFlow tab visibility: remove panel wrapper and show credential fields/devices via direct hidden conditions",
+        "de": "EcoFlow-Tab repariert: Panel-Wrapper entfernt und Zugangsdaten/Geräteliste über direkte hidden-Bedingungen eingeblendet"
+      },
       "0.1.3": {
         "en": "Fix admin tables: add compatible table item definitions so Add button is shown for inverters, additional power and EcoFlow devices",
         "de": "Admin-Tabellen repariert: kompatible Tabellen-Definition ergänzt, damit der Add-Button bei Wechselrichtern, Zusatzleistung und EcoFlow-Geräten angezeigt wird"
