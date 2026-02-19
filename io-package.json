@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.0",
+    "version": "0.1.1",
     "news": {
+      "0.1.1": {
+        "en": "Fix admin UI: add i18n support and correct item key format so table Add buttons work",
+        "de": "Admin-UI repariert: i18n aktiviert und Item-Keys korrigiert, Tabellen-Hinzufügen-Buttons funktionieren jetzt"
+      },
       "0.1.0": {
         "en": "Initial release – generic inverter regulation with optional EcoFlow MQTT bridge",
         "de": "Erstveröffentlichung – generische Wechselrichterregelung mit optionaler EcoFlow MQTT-Brücke"
