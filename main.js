@@ -572,6 +572,19 @@ class EcoflowPowerControl extends utils.Adapter {
                 `EcoFlow config sources: runtime(email=${runtimeEco.email ? 'set' : 'missing'}, password=${runtimeEco.password ? 'set' : 'missing'}, devices=${Array.isArray(runtimeEco.devices) ? runtimeEco.devices.length : 0}) ` +
                 `native(email=${nativeEco.email ? 'set' : 'missing'}, password=${nativeEco.password ? 'set' : 'missing'}, devices=${Array.isArray(nativeEco.devices) ? nativeEco.devices.length : 0})`
             );
+
+            const runtimeAltEmail = runtimeCfg?.efEmail;
+            const runtimeAltPassword = runtimeCfg?.efPassword;
+            const runtimeAltDevices = runtimeCfg?.efDevices;
+            const nativeAltEmail = nativeCfg?.efEmail;
+            const nativeAltPassword = nativeCfg?.efPassword;
+            const nativeAltDevices = nativeCfg?.efDevices;
+            if (runtimeAltEmail !== undefined || runtimeAltPassword !== undefined || runtimeAltDevices !== undefined || nativeAltEmail !== undefined || nativeAltPassword !== undefined || nativeAltDevices !== undefined) {
+                this.log.warn(
+                    `Detected alternative admin keys: runtime(efEmail=${runtimeAltEmail ? 'set' : 'missing'}, efPassword=${runtimeAltPassword ? 'set' : 'missing'}, efDevices=${Array.isArray(runtimeAltDevices) ? runtimeAltDevices.length : 0}) ` +
+                    `native(efEmail=${nativeAltEmail ? 'set' : 'missing'}, efPassword=${nativeAltPassword ? 'set' : 'missing'}, efDevices=${Array.isArray(nativeAltDevices) ? nativeAltDevices.length : 0})`
+                );
+            }
         } catch (err) {
             this.log.warn(`Could not read instance native config: ${err.message}`);
         }
@@ -594,9 +607,11 @@ class EcoflowPowerControl extends utils.Adapter {
             mergedCfg.ecoflow.email,
             nativeCfg?.ecoflow?.email,
             nativeCfg?.['ecoflow.email'],
+            nativeCfg?.efEmail,
             nativeCfg?.email,
             runtimeCfg?.ecoflow?.email,
             runtimeCfg?.['ecoflow.email'],
+            runtimeCfg?.efEmail,
             runtimeCfg?.email
         );
 
@@ -604,20 +619,103 @@ class EcoflowPowerControl extends utils.Adapter {
             mergedCfg.ecoflow.password,
             nativeCfg?.ecoflow?.password,
             nativeCfg?.['ecoflow.password'],
+            nativeCfg?.efPassword,
             nativeCfg?.password,
             runtimeCfg?.ecoflow?.password,
             runtimeCfg?.['ecoflow.password'],
+            runtimeCfg?.efPassword,
             runtimeCfg?.password
         );
 
-        if (!Array.isArray(mergedCfg.ecoflow.devices)) {
-            if (Array.isArray(nativeCfg?.ecoflow?.devices)) {
-                mergedCfg.ecoflow.devices = JSON.parse(JSON.stringify(nativeCfg.ecoflow.devices));
-            } else if (Array.isArray(runtimeCfg?.ecoflow?.devices)) {
-                mergedCfg.ecoflow.devices = JSON.parse(JSON.stringify(runtimeCfg.ecoflow.devices));
-            } else {
-                mergedCfg.ecoflow.devices = [];
+        const toBooleanOrUndefined = value => {
+            if (value === undefined || value === null || value === '') return undefined;
+            if (typeof value === 'boolean') return value;
+            const text = String(value).trim().toLowerCase();
+            if (text === 'true' || text === '1' || text === 'on' || text === 'yes') return true;
+            if (text === 'false' || text === '0' || text === 'off' || text === 'no') return false;
+            return undefined;
+        };
+
+        const enabledValue = [
+            mergedCfg?.ecoflow?.enabled,
+            nativeCfg?.ecoflow?.enabled,
+            nativeCfg?.['ecoflow.enabled'],
+            nativeCfg?.efEnabled,
+            runtimeCfg?.ecoflow?.enabled,
+            runtimeCfg?.['ecoflow.enabled'],
+            runtimeCfg?.efEnabled
+        ]
+            .map(toBooleanOrUndefined)
+            .find(value => value !== undefined);
+        if (enabledValue !== undefined) {
+            mergedCfg.ecoflow.enabled = enabledValue;
+        }
+
+        const toNumberOrUndefined = value => {
+            if (value === undefined || value === null || value === '') return undefined;
+            const numberValue = Number(value);
+            return Number.isFinite(numberValue) ? numberValue : undefined;
+        };
+
+        const reconnectValue = [
+            mergedCfg?.ecoflow?.reconnectMin,
+            nativeCfg?.ecoflow?.reconnectMin,
+            nativeCfg?.['ecoflow.reconnectMin'],
+            nativeCfg?.efReconnectMin,
+            runtimeCfg?.ecoflow?.reconnectMin,
+            runtimeCfg?.['ecoflow.reconnectMin'],
+            runtimeCfg?.efReconnectMin
+        ]
+            .map(toNumberOrUndefined)
+            .find(value => value !== undefined);
+        if (reconnectValue !== undefined) {
+            mergedCfg.ecoflow.reconnectMin = reconnectValue;
+        }
+
+        mergedCfg.ecoflow.legacyScriptImport = firstNonEmpty(
+            mergedCfg?.ecoflow?.legacyScriptImport,
+            nativeCfg?.ecoflow?.legacyScriptImport,
+            nativeCfg?.['ecoflow.legacyScriptImport'],
+            nativeCfg?.efLegacyScriptImport,
+            runtimeCfg?.ecoflow?.legacyScriptImport,
+            runtimeCfg?.['ecoflow.legacyScriptImport'],
+            runtimeCfg?.efLegacyScriptImport
+        );
+
+        const normalizeDevicesArray = value => {
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'string' && value.trim()) {
+                try {
+                    const parsed = JSON.parse(value);
+                    if (Array.isArray(parsed)) return parsed;
+                } catch (_) {
+                    // ignore parse errors
+                }
             }
+            return null;
+        };
+
+        if (!Array.isArray(mergedCfg.ecoflow.devices)) {
+            const candidateDevices = [
+                mergedCfg?.ecoflow?.devices,
+                nativeCfg?.ecoflow?.devices,
+                nativeCfg?.['ecoflow.devices'],
+                nativeCfg?.efDevices,
+                runtimeCfg?.ecoflow?.devices,
+                runtimeCfg?.['ecoflow.devices'],
+                runtimeCfg?.efDevices
+            ];
+
+            let resolvedDevices = null;
+            for (const candidate of candidateDevices) {
+                const normalized = normalizeDevicesArray(candidate);
+                if (normalized) {
+                    resolvedDevices = normalized;
+                    break;
+                }
+            }
+
+            mergedCfg.ecoflow.devices = resolvedDevices ? JSON.parse(JSON.stringify(resolvedDevices)) : [];
         }
 
         return mergedCfg;
