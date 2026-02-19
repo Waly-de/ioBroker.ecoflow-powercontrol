@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.8",
+    "version": "0.1.9",
     "news": {
+      "0.1.9": {
+        "en": "Improve EcoFlow connect reliability with MQTT variant probing and explicit system-log traces for test/import commands",
+        "de": "EcoFlow-Verbindungszuverlässigkeit verbessert durch MQTT-Varianten-Probing und explizite System-Logs für Test/Import-Befehle"
+      },
       "0.1.8": {
         "en": "Improve admin compatibility: test/import now run via command states; add import result state and robust command handling",
         "de": "Admin-Kompatibilität verbessert: Test/Import laufen über Command-States; Ergebnis-State und robuste Command-Verarbeitung ergänzt"

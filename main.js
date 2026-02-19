@@ -584,6 +584,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
     async _runTestConnectionFromState(rawPayload) {
         try {
+            this.log.warn('Admin command received: test EcoFlow connection');
             let payload = {};
             if (typeof rawPayload === 'string' && rawPayload.trim()) {
                 try {
@@ -628,7 +629,8 @@ class EcoflowPowerControl extends utils.Adapter {
 
     async _runImportFromState(rawScript) {
         try {
-            const script = String(rawScript || '').trim();
+            this.log.warn('Admin command received: import settings from legacy script');
+            const script = String(rawScript || this.config?.ecoflow?.legacyScriptImport || '').trim();
             if (!script) {
                 throw new Error('No legacy script content in import command payload.');
             }
