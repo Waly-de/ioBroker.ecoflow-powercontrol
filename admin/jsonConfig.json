@@ -498,7 +498,7 @@
         "efEnabled": {
           "type": "checkbox",
           "label": "ecoflow_enabled",
-          "attr": "efEnabled",
+          "attr": "ecoflow.enabled",
           "default": false
         },
         "efCredentialsHeader": {
@@ -508,17 +508,17 @@
         "efEmail": {
           "type": "text",
           "label": "ecoflow_email",
-          "attr": "efEmail"
+          "attr": "ecoflow.email"
         },
         "efPassword": {
           "type": "password",
           "label": "ecoflow_password",
-          "attr": "efPassword"
+          "attr": "ecoflow.password"
         },
         "efReconnectMin": {
           "type": "number",
           "label": "ecoflow_reconnectmin",
-          "attr": "efReconnectMin",
+          "attr": "ecoflow.reconnectMin",
           "default": 30
         },
         "efTestConnection": {
@@ -526,7 +526,7 @@
           "label": "ecoflow_test_connection",
           "id": "ecoflow-powercontrol.%INSTANCE%.commands.testConnection",
           "ack": false,
-          "val": "{\"email\":\"${data.efEmail}\",\"password\":\"${data.efPassword}\",\"reconnectMin\":\"${data.efReconnectMin}\"}",
+          "val": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
           "variant": "contained",
           "okText": "ecoflow_test_ok"
         },
@@ -541,7 +541,7 @@
         "efLegacyScriptImport": {
           "type": "text",
           "label": "ecoflow_import_paste",
-          "attr": "efLegacyScriptImport",
+          "attr": "ecoflow.legacyScriptImport",
           "minRows": 8,
           "maxRows": 20
         },
@@ -550,7 +550,7 @@
           "label": "ecoflow_import_button",
           "id": "ecoflow-powercontrol.%INSTANCE%.commands.importLegacyScript",
           "ack": false,
-          "val": "${data.efLegacyScriptImport}",
+          "val": "${data.ecoflow.legacyScriptImport}",
           "variant": "contained",
           "okText": "ecoflow_import_ok"
         },
@@ -573,7 +573,7 @@
         },
         "efDevices": {
           "type": "table",
-          "attr": "efDevices",
+          "attr": "ecoflow.devices",
           "label": "ecoflow_devices",
           "noDelete": false,
           "noAdd": false,

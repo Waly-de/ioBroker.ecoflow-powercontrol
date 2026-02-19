@@ -89,7 +89,11 @@ class EcoflowPowerControl extends utils.Adapter {
         const ecoflowHasEmail = !!(cfg?.ecoflow?.email && String(cfg.ecoflow.email).trim());
         const ecoflowHasPassword = !!(cfg?.ecoflow?.password && String(cfg.ecoflow.password).trim());
         const ecoflowDevices = Array.isArray(cfg?.ecoflow?.devices) ? cfg.ecoflow.devices.length : 0;
-        const shouldStartEcoflow = (ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword) || (!ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword);
+        const ecoflowHasDevices = ecoflowDevices > 0;
+        const shouldStartEcoflow = (
+            (ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword && ecoflowHasDevices) ||
+            (!ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword && ecoflowHasDevices)
+        );
 
         this.log.warn(`EcoFlow config at startup: enabled=${ecoflowEnabledFlag}, email=${ecoflowHasEmail ? 'set' : 'missing'}, password=${ecoflowHasPassword ? 'set' : 'missing'}, devices=${ecoflowDevices}`);
 
@@ -109,8 +113,13 @@ class EcoflowPowerControl extends utils.Adapter {
             await this.ecoflowMqtt.start();
         } else {
             // Ensure info.connection = false when EcoFlow is disabled
-            if (cfg.ecoflow && cfg.ecoflow.enabled) {
-                this.log.warn('EcoFlow MQTT is enabled but credentials are incomplete. Please set email and password.');
+            if ((cfg.ecoflow && cfg.ecoflow.enabled) || (ecoflowHasEmail && ecoflowHasPassword)) {
+                if (!ecoflowHasDevices) {
+                    this.log.warn('EcoFlow MQTT not started because no EcoFlow devices are configured.');
+                }
+                if (!ecoflowHasEmail || !ecoflowHasPassword) {
+                    this.log.warn('EcoFlow MQTT is enabled but credentials are incomplete. Please set email and password.');
+                }
             } else {
                 this.log.info('EcoFlow MQTT is disabled.');
             }
@@ -769,14 +778,20 @@ class EcoflowPowerControl extends utils.Adapter {
         ];
 
         let resolvedDevices = null;
+        let firstEmptyArray = null;
         for (const candidate of candidateDevices) {
             const normalized = normalizeDevicesArray(candidate);
-            if (normalized) {
+            if (!normalized) continue;
+            if (normalized.length > 0) {
                 resolvedDevices = normalized;
                 break;
             }
+            if (!firstEmptyArray) {
+                firstEmptyArray = normalized;
+            }
         }
-        mergedCfg.ecoflow.devices = resolvedDevices ? JSON.parse(JSON.stringify(resolvedDevices)) : [];
+        const chosenDevices = resolvedDevices || firstEmptyArray || [];
+        mergedCfg.ecoflow.devices = JSON.parse(JSON.stringify(chosenDevices));
 
         // Keep ef* mirrors in sync so Admin tab displays values reliably
         mergedCfg.efEmail = mergedCfg.ecoflow.email || '';
