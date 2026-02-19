@@ -6,7 +6,7 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.41",
+    "version": "0.1.45",
     "news": {
       "0.1.38": {
         "en": "Fix config normalization: empty flat keys no longer overwrite non-empty nested values (affects regulation and other tabs), plus regulation snapshot diagnostics",
@@ -478,5 +478,5 @@
       "native": {}
     }
   ],
-  "version": "0.1.44"
+  "version": "0.1.45"
 }
