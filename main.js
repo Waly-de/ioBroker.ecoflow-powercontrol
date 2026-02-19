@@ -120,7 +120,7 @@ class EcoflowPowerControl extends utils.Adapter {
             }
             this.log.info(`EcoFlow MQTT is enabled (devices: ${(cfg.ecoflow.devices || []).length}). Starting connection...`);
             this.ecoflowMqtt = new EcoflowMqtt(this);
-            await this.ecoflowMqtt.start();
+            await this._startEcoflowMqttNonBlocking();
         } else {
             // Ensure info.connection = false when EcoFlow is disabled
             if ((cfg.ecoflow && cfg.ecoflow.enabled) || (ecoflowHasEmail && ecoflowHasPassword)) {
@@ -894,6 +894,21 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         return text;
+    }
+
+    async _startEcoflowMqttNonBlocking() {
+        if (!this.ecoflowMqtt) return;
+
+        const startupTimeoutMs = 12000;
+        try {
+            await Promise.race([
+                this.ecoflowMqtt.start(),
+                new Promise(resolve => setTimeout(resolve, startupTimeoutMs))
+            ]);
+            this.log.info('EcoFlow MQTT startup phase finished (adapter continues).');
+        } catch (err) {
+            this.log.warn(`EcoFlow MQTT startup returned error (adapter continues): ${err.message}`);
+        }
     }
 
     _normalizeConfig(rawCfg) {

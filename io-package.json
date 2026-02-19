@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.28",
+    "version": "0.1.29",
     "news": {
+      "0.1.29": {
+        "en": "Make EcoFlow MQTT startup non-blocking with timeout guard so adapter initialization continues and regulation/realPower always start",
+        "de": "EcoFlow-MQTT-Start mit Timeout-Schutz nicht-blockierend gemacht, damit Adapter-Initialisierung weiterläuft und Regelung/realPower immer starten"
+      },
       "0.1.28": {
         "en": "Guard foreign state subscriptions with object checks and timeout to prevent startup blocking; add subscription phase logs",
         "de": "Foreign-State-Subscriptions mit Objekt-Checks und Timeout abgesichert, um Start-Blockaden zu vermeiden; zusätzliche Logs für die Subscription-Phase ergänzt"
