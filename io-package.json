@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.23",
+    "version": "0.1.24",
     "news": {
+      "0.1.24": {
+        "en": "Normalize Smartmeter state IDs from config/import snippets, add subscription diagnostics, and fix realPower first-value handling for negative readings",
+        "de": "Smartmeter-State-IDs aus Konfig/Import-Snippets normalisiert, Subscription-Diagnose ergänzt und realPower-Erstwertbehandlung bei negativen Werten korrigiert"
+      },
       "0.1.23": {
         "en": "Improve legacy import payload for multiline scripts, add tolerant SmartmeterID mapping, and initialize realPower at startup from smartmeter",
         "de": "Legacy-Import-Payload für mehrzeilige Skripte verbessert, SmartmeterID-Mapping toleranter gemacht und realPower beim Start direkt vom Smartmeter initialisiert"

@@ -278,8 +278,8 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── Foreign state: smartmeter value changed → update realPower
         const cfg = this.config;
-        if (cfg.regulation && cfg.regulation.smartmeterStateId &&
-            id === cfg.regulation.smartmeterStateId) {
+        const configuredSmartmeterId = this._normalizeStateIdInput(cfg?.regulation?.smartmeterStateId);
+        if (configuredSmartmeterId && id === configuredSmartmeterId) {
             const gridPower = Number(state.val) || 0;
             if (this.regulation) {
                 // Non-blocking – updateRealPower has its own debounce
@@ -702,6 +702,9 @@ class EcoflowPowerControl extends utils.Adapter {
         if (!mergedCfg.ecoflow || typeof mergedCfg.ecoflow !== 'object' || Array.isArray(mergedCfg.ecoflow)) {
             mergedCfg.ecoflow = {};
         }
+        if (!mergedCfg.regulation || typeof mergedCfg.regulation !== 'object' || Array.isArray(mergedCfg.regulation)) {
+            mergedCfg.regulation = {};
+        }
 
         const firstNonEmpty = (...values) => {
             for (const value of values) {
@@ -837,7 +840,39 @@ class EcoflowPowerControl extends utils.Adapter {
         mergedCfg.efEnabled = !!mergedCfg.ecoflow.enabled;
         mergedCfg.efDevices = JSON.parse(JSON.stringify(mergedCfg.ecoflow.devices || []));
 
+        mergedCfg.regulation.smartmeterStateId = this._normalizeStateIdInput(firstNonEmpty(
+            mergedCfg?.regulation?.smartmeterStateId,
+            nativeCfg?.regulation?.smartmeterStateId,
+            nativeCfg?.['regulation.smartmeterStateId'],
+            runtimeCfg?.regulation?.smartmeterStateId,
+            runtimeCfg?.['regulation.smartmeterStateId']
+        ));
+
         return mergedCfg;
+    }
+
+    _normalizeStateIdInput(value) {
+        if (value === undefined || value === null) return '';
+        let text = String(value).trim();
+        if (!text) return '';
+
+        if (/smartmeterid|smartmeterstateid/i.test(text) && text.includes(':')) {
+            text = text.slice(text.indexOf(':') + 1).trim();
+        }
+
+        text = text.replace(/^[\s"']+/, '').replace(/[\s"',;]+$/, '').trim();
+
+        const quoted = text.match(/^["']([^"']+)["']$/);
+        if (quoted && quoted[1]) {
+            text = quoted[1].trim();
+        }
+
+        const genericQuoted = String(value).match(/["']([^"']+)["']/);
+        if ((!text || text.includes(':') || text.includes(' ')) && genericQuoted && genericQuoted[1] && genericQuoted[1].includes('.')) {
+            text = genericQuoted[1].trim();
+        }
+
+        return text;
     }
 
     _normalizeConfig(rawCfg) {
@@ -934,7 +969,7 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _initializeRealPowerFromSmartmeter(cfg) {
-        const smartmeterStateId = String(cfg?.regulation?.smartmeterStateId || '').trim();
+        const smartmeterStateId = this._normalizeStateIdInput(cfg?.regulation?.smartmeterStateId);
         if (!smartmeterStateId || !this.regulation) return;
 
         try {
@@ -1245,12 +1280,14 @@ class EcoflowPowerControl extends utils.Adapter {
 
     async _subscribeForeignStates(cfg) {
         const subscribe = async id => {
-            if (!id || this.foreignSubscriptions.has(id)) return;
+            const normalizedId = this._normalizeStateIdInput(id);
+            if (!normalizedId || this.foreignSubscriptions.has(normalizedId)) return;
             try {
-                await this.subscribeForeignStatesAsync(id);
-                this.foreignSubscriptions.add(id);
+                await this.subscribeForeignStatesAsync(normalizedId);
+                this.foreignSubscriptions.add(normalizedId);
+                this.log.info(`Subscribed to foreign state: ${normalizedId}`);
             } catch (e) {
-                this.log.warn(`Could not subscribe to foreign state ${id}: ${e.message}`);
+                this.log.warn(`Could not subscribe to foreign state ${normalizedId}: ${e.message}`);
             }
         };
 
