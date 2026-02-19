@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.12",
+    "version": "0.1.13",
     "news": {
+      "0.1.13": {
+        "en": "Read effective config from both runtime and instance native object; robust fallback for EcoFlow credentials",
+        "de": "Effektive Konfiguration aus Runtime und Instanz-Native lesen; robuster Fallback für EcoFlow-Zugangsdaten"
+      },
       "0.1.12": {
         "en": "Fix config read on some admin versions: normalize flat native keys (e.g. ecoflow.email) to nested objects",
         "de": "Fix fürs Konfig-Lesen bei manchen Admin-Versionen: flache Native-Keys (z.B. ecoflow.email) werden in verschachtelte Objekte normalisiert"

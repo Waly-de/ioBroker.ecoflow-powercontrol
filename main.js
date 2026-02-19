@@ -38,7 +38,7 @@ class EcoflowPowerControl extends utils.Adapter {
     async _onReady() {
         this.log.info('EcoFlow PowerControl adapter starting...');
 
-        let cfg = this._normalizeConfig(this.config || {});
+        let cfg = await this._loadEffectiveConfig();
         this.config = cfg;
 
         await this._createCommandObjects();
@@ -555,6 +555,72 @@ class EcoflowPowerControl extends utils.Adapter {
             }
         }
         return target;
+    }
+
+    async _loadEffectiveConfig() {
+        const runtimeCfg = this._normalizeConfig(this.config || {});
+
+        let nativeCfg = {};
+        try {
+            const instanceObjectId = `system.adapter.${this.namespace}`;
+            const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
+            nativeCfg = this._normalizeConfig(instanceObj?.native || {});
+
+            const runtimeEco = runtimeCfg?.ecoflow || {};
+            const nativeEco = nativeCfg?.ecoflow || {};
+            this.log.warn(
+                `EcoFlow config sources: runtime(email=${runtimeEco.email ? 'set' : 'missing'}, password=${runtimeEco.password ? 'set' : 'missing'}, devices=${Array.isArray(runtimeEco.devices) ? runtimeEco.devices.length : 0}) ` +
+                `native(email=${nativeEco.email ? 'set' : 'missing'}, password=${nativeEco.password ? 'set' : 'missing'}, devices=${Array.isArray(nativeEco.devices) ? nativeEco.devices.length : 0})`
+            );
+        } catch (err) {
+            this.log.warn(`Could not read instance native config: ${err.message}`);
+        }
+
+        const mergedCfg = this._deepMerge(JSON.parse(JSON.stringify(runtimeCfg || {})), nativeCfg || {});
+        if (!mergedCfg.ecoflow || typeof mergedCfg.ecoflow !== 'object' || Array.isArray(mergedCfg.ecoflow)) {
+            mergedCfg.ecoflow = {};
+        }
+
+        const firstNonEmpty = (...values) => {
+            for (const value of values) {
+                if (value === undefined || value === null) continue;
+                const text = String(value).trim();
+                if (text) return text;
+            }
+            return '';
+        };
+
+        mergedCfg.ecoflow.email = firstNonEmpty(
+            mergedCfg.ecoflow.email,
+            nativeCfg?.ecoflow?.email,
+            nativeCfg?.['ecoflow.email'],
+            nativeCfg?.email,
+            runtimeCfg?.ecoflow?.email,
+            runtimeCfg?.['ecoflow.email'],
+            runtimeCfg?.email
+        );
+
+        mergedCfg.ecoflow.password = firstNonEmpty(
+            mergedCfg.ecoflow.password,
+            nativeCfg?.ecoflow?.password,
+            nativeCfg?.['ecoflow.password'],
+            nativeCfg?.password,
+            runtimeCfg?.ecoflow?.password,
+            runtimeCfg?.['ecoflow.password'],
+            runtimeCfg?.password
+        );
+
+        if (!Array.isArray(mergedCfg.ecoflow.devices)) {
+            if (Array.isArray(nativeCfg?.ecoflow?.devices)) {
+                mergedCfg.ecoflow.devices = JSON.parse(JSON.stringify(nativeCfg.ecoflow.devices));
+            } else if (Array.isArray(runtimeCfg?.ecoflow?.devices)) {
+                mergedCfg.ecoflow.devices = JSON.parse(JSON.stringify(runtimeCfg.ecoflow.devices));
+            } else {
+                mergedCfg.ecoflow.devices = [];
+            }
+        }
+
+        return mergedCfg;
     }
 
     _normalizeConfig(rawCfg) {
