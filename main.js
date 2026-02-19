@@ -159,10 +159,12 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 6. Subscribe to own states
         this.log.info('onReady step: subscribe own states (begin)');
-        await this.subscribeStatesAsync('regulation.enabled');
-        await this.subscribeStatesAsync('commands.testConnection');
-        await this.subscribeStatesAsync('commands.importLegacyScript');
-        await this.subscribeStatesAsync('commands.resetAllSettings');
+        await this._subscribeOwnStatesSafe([
+            'regulation.enabled',
+            'commands.testConnection',
+            'commands.importLegacyScript',
+            'commands.resetAllSettings'
+        ]);
         this.log.info('onReady step: subscribe own states (done)');
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
@@ -1047,6 +1049,22 @@ class EcoflowPowerControl extends utils.Adapter {
             this.log.info(`Initial realPower update done from smartmeter (${smartmeterStateId}=${gridPower}).`);
         } catch (err) {
             this.log.warn(`Initial smartmeter read failed (${smartmeterStateId}): ${err.message}`);
+        }
+    }
+
+    async _subscribeOwnStatesSafe(stateIds, timeoutMs = 4000) {
+        const subscribeWithTimeout = stateId => Promise.race([
+            this.subscribeStatesAsync(stateId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs))
+        ]);
+
+        for (const stateId of stateIds || []) {
+            try {
+                await subscribeWithTimeout(stateId);
+                this.log.info(`Subscribed to own state: ${stateId}`);
+            } catch (err) {
+                this.log.warn(`Could not subscribe to own state ${stateId}: ${err.message}`);
+            }
         }
     }
 

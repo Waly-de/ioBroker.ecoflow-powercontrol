@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.30",
+    "version": "0.1.31",
     "news": {
+      "0.1.31": {
+        "en": "Guard own-state subscriptions with per-state timeout and continue startup to avoid stalls at subscribe own states",
+        "de": "Eigene State-Subscriptions mit Timeout pro State abgesichert und Startup-Fortsetzung erzwungen, um Hänger bei 'subscribe own states' zu vermeiden"
+      },
       "0.1.30": {
         "en": "Add detailed onReady breadcrumb logs and fatal startup error logging to pinpoint initialization stalls",
         "de": "Detaillierte onReady-Breadcrumb-Logs und fatale Startup-Fehlerausgabe ergänzt, um Initialisierungs-Blockaden exakt zu lokalisieren"
