@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.19",
+    "version": "0.1.20",
     "news": {
+      "0.1.20": {
+        "en": "Fix admin command execution reliability for test/import/reset, add live command result display in admin, and stabilize reset sequencing",
+        "de": "Zuverlässigkeit der Admin-Befehle für Test/Import/Reset verbessert, Live-Ergebnisanzeige in der Admin ergänzt und Reset-Ablauf stabilisiert"
+      },
       "0.1.19": {
         "en": "Hard reset now removes full adapter object/state tree and then restores default native config for a clean start",
         "de": "Hard-Reset löscht jetzt den kompletten Objekt-/State-Baum des Adapters und stellt danach die Default-Native-Konfiguration für einen sauberen Neustart wieder her"
