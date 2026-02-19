@@ -1,11 +1,12 @@
 {
   "type": "tabs",
+  "i18n": true,
   "items": {
     "tab_inverters": {
       "type": "tab",
       "label": "tab_inverters",
       "items": {
-        "inverters_header": {
+        "inv_header": {
           "type": "header",
           "text": "inverters_header",
           "size": 5
@@ -14,14 +15,13 @@
           "type": "table",
           "attr": "inverters",
           "label": "inverters",
-          "showSecondAddAt": 3,
           "noDelete": false,
           "columns": [
             {
               "attr": "id",
               "type": "text",
               "title": "col_inv_id",
-              "width": "100px"
+              "width": "110px"
             },
             {
               "attr": "name",
@@ -37,21 +37,21 @@
                 { "value": "generic", "label": "Generic" },
                 { "value": "ecoflow", "label": "EcoFlow PS" }
               ],
-              "width": "110px",
+              "width": "120px",
               "default": "generic"
             },
             {
               "attr": "maxPower",
               "type": "number",
               "title": "col_inv_maxpower",
-              "width": "90px",
+              "width": "80px",
               "default": 800
             },
             {
               "attr": "regulation",
               "type": "checkbox",
               "title": "col_inv_regulation",
-              "width": "80px",
+              "width": "70px",
               "default": true
             },
             {
@@ -65,31 +65,31 @@
               "attr": "outputStateId",
               "type": "text",
               "title": "col_inv_outputstateid",
-              "width": "250px"
+              "width": "220px"
             },
             {
               "attr": "setOutputStateId",
               "type": "text",
               "title": "col_inv_setoutputstateid",
-              "width": "250px"
+              "width": "220px"
             },
             {
               "attr": "batterySOCStateId",
               "type": "text",
               "title": "col_inv_batsocstateid",
-              "width": "250px"
+              "width": "220px"
             },
             {
               "attr": "pvPowerStateId",
               "type": "text",
               "title": "col_inv_pvstateid",
-              "width": "250px"
+              "width": "220px"
             },
             {
               "attr": "setPriorityStateId",
               "type": "text",
               "title": "col_inv_setpriostateid",
-              "width": "250px"
+              "width": "220px"
             },
             {
               "attr": "battPozOn",
@@ -109,7 +109,7 @@
               "attr": "battOnSwitchPrio",
               "type": "checkbox",
               "title": "col_inv_switchprio",
-              "width": "80px",
+              "width": "70px",
               "default": false
             },
             {
@@ -170,7 +170,7 @@
               "attr": "id",
               "type": "text",
               "title": "col_ap_stateid",
-              "width": "300px"
+              "width": "280px"
             },
             {
               "attr": "factor",
@@ -197,7 +197,7 @@
               "attr": "noPV",
               "type": "checkbox",
               "title": "col_ap_nopv",
-              "width": "80px",
+              "width": "70px",
               "default": false
             }
           ]
@@ -207,110 +207,119 @@
           "text": "ec_header",
           "size": 5
         },
-        "excessCharge.enabled": {
+        "ecEnabled": {
           "type": "checkbox",
           "label": "ec_enabled",
           "attr": "excessCharge.enabled",
           "default": false
         },
-        "ec_panel": {
-          "type": "panel",
-          "label": "ec_panel",
-          "hidden": "!data.excessCharge.enabled",
-          "items": {
-            "excessCharge.powerStateId": {
-              "type": "text",
-              "label": "ec_powerstateid",
-              "attr": "excessCharge.powerStateId"
-            },
-            "excessCharge.batSocStateId": {
-              "type": "text",
-              "label": "ec_batsocstateid",
-              "attr": "excessCharge.batSocStateId"
-            },
-            "excessCharge.actualPowerStateId": {
-              "type": "text",
-              "label": "ec_actualpowerstateid",
-              "attr": "excessCharge.actualPowerStateId"
-            },
-            "excessCharge.switchStateId": {
-              "type": "text",
-              "label": "ec_switchstateid",
-              "attr": "excessCharge.switchStateId"
-            },
-            "excessCharge.switchOnValue": {
-              "type": "text",
-              "label": "ec_switchonvalue",
-              "attr": "excessCharge.switchOnValue",
-              "default": "true"
-            },
-            "excessCharge.switchOffValue": {
-              "type": "text",
-              "label": "ec_switchoffvalue",
-              "attr": "excessCharge.switchOffValue",
-              "default": "false"
-            },
-            "excessCharge.maxPower": {
-              "type": "number",
-              "label": "ec_maxpower",
-              "attr": "excessCharge.maxPower",
-              "default": 2000
-            },
-            "excessCharge.offsetPower": {
-              "type": "number",
-              "label": "ec_offsetpower",
-              "attr": "excessCharge.offsetPower",
-              "default": 0
-            },
-            "excessCharge.startPower": {
-              "type": "number",
-              "label": "ec_startpower",
-              "attr": "excessCharge.startPower",
-              "default": 50
-            },
-            "excessCharge.stopPower": {
-              "type": "number",
-              "label": "ec_stoppower",
-              "attr": "excessCharge.stopPower",
-              "default": 0
-            },
-            "excessCharge.startDurationMin": {
-              "type": "number",
-              "label": "ec_startdurationmin",
-              "attr": "excessCharge.startDurationMin",
-              "default": 1
-            },
-            "excessCharge.minRegulatePauseMin": {
-              "type": "number",
-              "label": "ec_minregulatepausemin",
-              "attr": "excessCharge.minRegulatePauseMin",
-              "default": 1
-            },
-            "excessCharge.regulateSteps": {
-              "type": "number",
-              "label": "ec_regulatesteps",
-              "attr": "excessCharge.regulateSteps",
-              "default": 100
-            },
-            "excessCharge.batSocMax": {
-              "type": "number",
-              "label": "ec_batsocmax",
-              "attr": "excessCharge.batSocMax",
-              "default": 95
-            },
-            "excessCharge.batSocOff": {
-              "type": "number",
-              "label": "ec_batsocoff",
-              "attr": "excessCharge.batSocOff",
-              "default": 100
-            },
-            "excessCharge.switchMinMin": {
-              "type": "number",
-              "label": "ec_switchminmin",
-              "attr": "excessCharge.switchMinMin",
-              "default": 5
-            }
-          }
+        "ec_powerStateId": {
+          "type": "text",
+          "label": "ec_powerstateid",
+          "attr": "excessCharge.powerStateId",
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_batSocStateId": {
+          "type": "text",
+          "label": "ec_batsocstateid",
+          "attr": "excessCharge.batSocStateId",
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_actualPowerStateId": {
+          "type": "text",
+          "label": "ec_actualpowerstateid",
+          "attr": "excessCharge.actualPowerStateId",
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_switchStateId": {
+          "type": "text",
+          "label": "ec_switchstateid",
+          "attr": "excessCharge.switchStateId",
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_switchOnValue": {
+          "type": "text",
+          "label": "ec_switchonvalue",
+          "attr": "excessCharge.switchOnValue",
+          "default": "true",
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_switchOffValue": {
+          "type": "text",
+          "label": "ec_switchoffvalue",
+          "attr": "excessCharge.switchOffValue",
+          "default": "false",
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_maxPower": {
+          "type": "number",
+          "label": "ec_maxpower",
+          "attr": "excessCharge.maxPower",
+          "default": 2000,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_offsetPower": {
+          "type": "number",
+          "label": "ec_offsetpower",
+          "attr": "excessCharge.offsetPower",
+          "default": 0,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_startPower": {
+          "type": "number",
+          "label": "ec_startpower",
+          "attr": "excessCharge.startPower",
+          "default": 50,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_stopPower": {
+          "type": "number",
+          "label": "ec_stoppower",
+          "attr": "excessCharge.stopPower",
+          "default": 0,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_startDurationMin": {
+          "type": "number",
+          "label": "ec_startdurationmin",
+          "attr": "excessCharge.startDurationMin",
+          "default": 1,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_minRegulatePauseMin": {
+          "type": "number",
+          "label": "ec_minregulatepausemin",
+          "attr": "excessCharge.minRegulatePauseMin",
+          "default": 1,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_regulateSteps": {
+          "type": "number",
+          "label": "ec_regulatesteps",
+          "attr": "excessCharge.regulateSteps",
+          "default": 100,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_batSocMax": {
+          "type": "number",
+          "label": "ec_batsocmax",
+          "attr": "excessCharge.batSocMax",
+          "default": 95,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_batSocOff": {
+          "type": "number",
+          "label": "ec_batsocoff",
+          "attr": "excessCharge.batSocOff",
+          "default": 100,
+          "hidden": "!data.excessCharge.enabled"
+        },
+        "ec_switchMinMin": {
+          "type": "number",
+          "label": "ec_switchminmin",
+          "attr": "excessCharge.switchMinMin",
+          "default": 5,
+          "hidden": "!data.excessCharge.enabled"
         }
       }
     },
@@ -318,46 +327,42 @@
       "type": "tab",
       "label": "tab_ecoflow",
       "items": {
-        "ecoflow_intro": {
+        "ef_intro": {
           "type": "staticText",
           "text": "ecoflow_intro"
         },
-        "ecoflow.enabled": {
+        "efEnabled": {
           "type": "checkbox",
           "label": "ecoflow_enabled",
           "attr": "ecoflow.enabled",
           "default": false
         },
-        "ecoflow_credentials": {
-          "type": "panel",
-          "label": "ecoflow_credentials",
-          "hidden": "!data.ecoflow.enabled",
-          "items": {
-            "ecoflow.email": {
-              "type": "text",
-              "label": "ecoflow_email",
-              "attr": "ecoflow.email"
-            },
-            "ecoflow.password": {
-              "type": "password",
-              "label": "ecoflow_password",
-              "attr": "ecoflow.password"
-            },
-            "ecoflow.reconnectMin": {
-              "type": "number",
-              "label": "ecoflow_reconnectmin",
-              "attr": "ecoflow.reconnectMin",
-              "default": 30
-            }
-          }
+        "efEmail": {
+          "type": "text",
+          "label": "ecoflow_email",
+          "attr": "ecoflow.email",
+          "hidden": "!data.ecoflow.enabled"
         },
-        "ecoflow_devices_header": {
+        "efPassword": {
+          "type": "password",
+          "label": "ecoflow_password",
+          "attr": "ecoflow.password",
+          "hidden": "!data.ecoflow.enabled"
+        },
+        "efReconnectMin": {
+          "type": "number",
+          "label": "ecoflow_reconnectmin",
+          "attr": "ecoflow.reconnectMin",
+          "default": 30,
+          "hidden": "!data.ecoflow.enabled"
+        },
+        "ef_devices_header": {
           "type": "header",
           "text": "ecoflow_devices_header",
           "size": 5,
           "hidden": "!data.ecoflow.enabled"
         },
-        "ecoflow.devices": {
+        "efDevices": {
           "type": "table",
           "attr": "ecoflow.devices",
           "label": "ecoflow_devices",
@@ -400,7 +405,7 @@
             }
           ]
         },
-        "ecoflow_statepaths": {
+        "ef_paths_hint": {
           "type": "staticText",
           "text": "ecoflow_statepaths_hint",
           "hidden": "!data.ecoflow.enabled"
@@ -416,18 +421,18 @@
           "text": "reg_sm_header",
           "size": 5
         },
-        "regulation.smartmeterStateId": {
+        "regSmStateId": {
           "type": "text",
           "label": "reg_smartmeterstateid",
           "attr": "regulation.smartmeterStateId"
         },
-        "regulation.smartmeterTimeoutMin": {
+        "regSmTimeoutMin": {
           "type": "number",
           "label": "reg_smartmetertimeoutmin",
           "attr": "regulation.smartmeterTimeoutMin",
           "default": 4
         },
-        "regulation.smartmeterFallbackPower": {
+        "regSmFallback": {
           "type": "number",
           "label": "reg_smartmeterfallbackpower",
           "attr": "regulation.smartmeterFallbackPower",
@@ -438,25 +443,25 @@
           "text": "reg_loop_header",
           "size": 5
         },
-        "regulation.intervalSec": {
+        "regIntervalSec": {
           "type": "number",
           "label": "reg_intervalsec",
           "attr": "regulation.intervalSec",
           "default": 15
         },
-        "regulation.basePowerOffset": {
+        "regBasePowerOffset": {
           "type": "number",
           "label": "reg_basepoweroffset",
           "attr": "regulation.basePowerOffset",
           "default": 30
         },
-        "regulation.minValueMin": {
+        "regMinValueMin": {
           "type": "number",
           "label": "reg_minvaluemin",
           "attr": "regulation.minValueMin",
           "default": 2
         },
-        "regulation.minValueAg": {
+        "regMinValueAg": {
           "type": "select",
           "label": "reg_minvalueag",
           "attr": "regulation.minValueAg",
@@ -466,18 +471,18 @@
           ],
           "default": 0
         },
-        "regulation.zusatzpowerOffset": {
+        "regZusatzpowerOffset": {
           "type": "number",
           "label": "reg_zusatzpoweroffset",
           "attr": "regulation.zusatzpowerOffset",
           "default": 10
         },
-        "reg_multiinv_header": {
+        "reg_multi_header": {
           "type": "header",
           "text": "reg_multiinv_header",
           "size": 5
         },
-        "regulation.multiPsMode": {
+        "regMultiPsMode": {
           "type": "select",
           "label": "reg_multipsmode",
           "attr": "regulation.multiPsMode",
@@ -487,19 +492,19 @@
           ],
           "default": 0
         },
-        "regulation.serialReverse": {
+        "regSerialReverse": {
           "type": "checkbox",
           "label": "reg_serialreverse",
           "attr": "regulation.serialReverse",
           "default": false,
-          "hidden": "data.regulation.multiPsMode !== 1"
+          "hidden": "data.regulation.multiPsMode != 1"
         },
         "reg_history_header": {
           "type": "header",
           "text": "reg_history_header",
           "size": 5
         },
-        "regulation.historyAdapter": {
+        "regHistoryAdapter": {
           "type": "select",
           "label": "reg_historyadapter",
           "attr": "regulation.historyAdapter",
@@ -510,7 +515,7 @@
           ],
           "default": "history"
         },
-        "regulation.historyInstance": {
+        "regHistoryInstance": {
           "type": "text",
           "label": "reg_historyinstance",
           "attr": "regulation.historyInstance",
@@ -522,34 +527,34 @@
       "type": "tab",
       "label": "tab_info",
       "items": {
-        "debug_header": {
+        "dbg_header": {
           "type": "header",
           "text": "debug_header",
           "size": 5
         },
-        "advanced.debug": {
+        "advDebug": {
           "type": "checkbox",
           "label": "advanced_debug",
           "attr": "advanced.debug",
           "default": false
         },
-        "advanced.mlog": {
+        "advMlog": {
           "type": "checkbox",
           "label": "advanced_mlog",
           "attr": "advanced.mlog",
           "default": false
         },
-        "advanced.avgPeriodMs": {
+        "advAvgPeriodMs": {
           "type": "number",
           "label": "advanced_avgperiodms",
           "attr": "advanced.avgPeriodMs",
           "default": 15000
         },
-        "info_links": {
+        "infoLinks": {
           "type": "staticText",
           "text": "info_links"
         },
-        "info_regulationoffpower_hint": {
+        "infoOffPowerHint": {
           "type": "staticText",
           "text": "info_regulationoffpower_hint"
         }
