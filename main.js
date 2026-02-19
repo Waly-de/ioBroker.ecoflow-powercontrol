@@ -925,18 +925,27 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
+        const preferredCandidates = [
+            runtimeCfg?.regulation?.smartmeterStateId,
+            runtimeCfg?.['regulation.smartmeterStateId'],
+            nativeCfg?.regulation?.smartmeterStateId,
+            nativeCfg?.['regulation.smartmeterStateId'],
+            mergedCfg?.regulation?.smartmeterStateId
+        ]
+            .map(value => this._normalizeStateIdInput(value))
+            .filter(Boolean);
+
+        if (preferredCandidates.length > 0) {
+            const selected = preferredCandidates[0];
+            this.log.info(`Smartmeter preferred key selected: ${selected}`);
+            return selected;
+        }
+
         const rawSources = {
-            'runtime.regulation.smartmeterStateId': runtimeCfg?.regulation?.smartmeterStateId,
-            'runtime[regulation.smartmeterStateId]': runtimeCfg?.['regulation.smartmeterStateId'],
             'runtime.SmartmeterID': runtimeCfg?.SmartmeterID,
             'runtime.SmartmeterId': runtimeCfg?.SmartmeterId,
             'runtime.smartmeterID': runtimeCfg?.smartmeterID,
             'runtime.smartmeterId': runtimeCfg?.smartmeterId,
-
-            'merged.regulation.smartmeterStateId': mergedCfg?.regulation?.smartmeterStateId,
-
-            'native.regulation.smartmeterStateId': nativeCfg?.regulation?.smartmeterStateId,
-            'native[regulation.smartmeterStateId]': nativeCfg?.['regulation.smartmeterStateId'],
             'native.SmartmeterID': nativeCfg?.SmartmeterID,
             'native.SmartmeterId': nativeCfg?.SmartmeterId,
             'native.smartmeterID': nativeCfg?.smartmeterID,
@@ -959,7 +968,7 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         if (!candidates.length) {
-            this.log.warn('Smartmeter resolution: no candidates found in runtime/native config.');
+            this.log.warn('Smartmeter resolution: no candidates found in legacy runtime/native config either.');
             return '';
         }
 

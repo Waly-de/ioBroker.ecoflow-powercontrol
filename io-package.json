@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.34",
+    "version": "0.1.35",
     "news": {
+      "0.1.35": {
+        "en": "Fix smartmeter source priority: always prefer regulation.smartmeterStateId from admin config; use legacy SmartmeterID keys only as fallback",
+        "de": "Priorität der Smartmeter-Quelle korrigiert: immer regulation.smartmeterStateId aus der Admin-Konfiguration bevorzugen; Legacy-SmartmeterID-Keys nur noch als Fallback"
+      },
       "0.1.34": {
         "en": "Expand smartmeter ID resolution to legacy key variants and log all runtime/native source candidates for transparent diagnostics",
         "de": "Smartmeter-ID-Auflösung auf Legacy-Key-Varianten erweitert und alle Runtime/Native-Quellkandidaten transparent geloggt"
