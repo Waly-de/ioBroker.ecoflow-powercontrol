@@ -38,7 +38,8 @@ class EcoflowPowerControl extends utils.Adapter {
     async _onReady() {
         this.log.info('EcoFlow PowerControl adapter starting...');
 
-        let cfg = this.config;
+        let cfg = this._normalizeConfig(this.config || {});
+        this.config = cfg;
 
         await this._createCommandObjects();
 
@@ -83,6 +84,13 @@ class EcoflowPowerControl extends utils.Adapter {
         const shouldStartEcoflow = (ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword) || (!ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword);
 
         this.log.warn(`EcoFlow config at startup: enabled=${ecoflowEnabledFlag}, email=${ecoflowHasEmail ? 'set' : 'missing'}, password=${ecoflowHasPassword ? 'set' : 'missing'}, devices=${ecoflowDevices}`);
+
+        const flatEcoflowEmail = cfg['ecoflow.email'];
+        const flatEcoflowPassword = cfg['ecoflow.password'];
+        const flatEcoflowDevices = cfg['ecoflow.devices'];
+        if (flatEcoflowEmail !== undefined || flatEcoflowPassword !== undefined || flatEcoflowDevices !== undefined) {
+            this.log.warn(`Detected flat ecoflow keys in native config (legacy admin format): email=${flatEcoflowEmail ? 'set' : 'missing'}, password=${flatEcoflowPassword ? 'set' : 'missing'}, devices=${Array.isArray(flatEcoflowDevices) ? flatEcoflowDevices.length : 0}`);
+        }
 
         if (shouldStartEcoflow) {
             if (!ecoflowEnabledFlag) {
@@ -547,6 +555,39 @@ class EcoflowPowerControl extends utils.Adapter {
             }
         }
         return target;
+    }
+
+    _normalizeConfig(rawCfg) {
+        const cfg = JSON.parse(JSON.stringify(rawCfg || {}));
+
+        for (const [key, value] of Object.entries(rawCfg || {})) {
+            if (!key.includes('.')) continue;
+            this._setByPath(cfg, key, value, true);
+        }
+
+        return cfg;
+    }
+
+    _setByPath(target, path, value, preferNewValue = false) {
+        const parts = String(path || '').split('.').filter(Boolean);
+        if (!parts.length) return;
+
+        let node = target;
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            if (!node[part] || typeof node[part] !== 'object' || Array.isArray(node[part])) {
+                node[part] = {};
+            }
+            node = node[part];
+        }
+
+        const leaf = parts[parts.length - 1];
+        const current = node[leaf];
+        const currentMissing = current === undefined || current === null || current === '';
+
+        if (preferNewValue || currentMissing) {
+            node[leaf] = value;
+        }
     }
 
     async _createCommandObjects() {
