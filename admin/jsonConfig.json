@@ -521,6 +521,26 @@
           "attr": "ecoflow.reconnectMin",
           "default": 30
         },
+        "efTestConnection": {
+          "type": "sendTo",
+          "label": "ecoflow_test_connection",
+          "command": "testEcoflowConnection",
+          "jsonData": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
+          "variant": "contained",
+          "icon": "search",
+          "showProcess": true,
+          "timeout": 20000,
+          "result": {
+            "test_ok": "ecoflow_test_success"
+          },
+          "error": {
+            "test_err": "ecoflow_test_error"
+          }
+        },
+        "efTestHint": {
+          "type": "staticText",
+          "text": "ecoflow_test_hint"
+        },
         "efDevicesHeader": {
           "type": "staticText",
           "text": "ecoflow_devices_header"

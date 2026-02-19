@@ -28,6 +28,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
         this.on('ready',       this._onReady.bind(this));
         this.on('stateChange', this._onStateChange.bind(this));
+        this.on('message',     this._onMessage.bind(this));
         this.on('unload',      this._onUnload.bind(this));
     }
 
@@ -70,10 +71,16 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 4. Start EcoFlow MQTT (optional)
         if (cfg.ecoflow && cfg.ecoflow.enabled && cfg.ecoflow.email && cfg.ecoflow.password) {
+            this.log.info(`EcoFlow MQTT is enabled (devices: ${(cfg.ecoflow.devices || []).length}). Starting connection...`);
             this.ecoflowMqtt = new EcoflowMqtt(this);
             await this.ecoflowMqtt.start();
         } else {
             // Ensure info.connection = false when EcoFlow is disabled
+            if (cfg.ecoflow && cfg.ecoflow.enabled) {
+                this.log.warn('EcoFlow MQTT is enabled but credentials are incomplete. Please set email and password.');
+            } else {
+                this.log.info('EcoFlow MQTT is disabled.');
+            }
             await this.setStateAsync('info.connection', false, true);
         }
 
@@ -187,6 +194,58 @@ class EcoflowPowerControl extends utils.Adapter {
                     this.log.debug(`updateRealPower error: ${err.message}`);
                 });
             }
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────── admin messages
+
+    async _onMessage(obj) {
+        if (!obj || !obj.command) return;
+        if (obj.command !== 'testEcoflowConnection') return;
+
+        const respond = payload => {
+            if (obj.callback) {
+                this.sendTo(obj.from, obj.command, payload, obj.callback);
+            }
+        };
+
+        try {
+            let message = obj.message || {};
+            if (typeof message === 'string') {
+                try {
+                    message = JSON.parse(message);
+                } catch {
+                    message = {};
+                }
+            }
+
+            const email = String(message.email || this.config.ecoflow?.email || '').trim();
+            const password = String(message.password || this.config.ecoflow?.password || '').trim();
+            const reconnectMin = Number(message.reconnectMin || this.config.ecoflow?.reconnectMin || 30) || 30;
+
+            this.log.info('EcoFlow MQTT test connection requested from admin.');
+
+            if (!email || !password) {
+                throw new Error('EcoFlow credentials missing. Please enter email and password first.');
+            }
+
+            const testCfg = {
+                ...(this.config.ecoflow || {}),
+                email,
+                password,
+                reconnectMin,
+                devices: Array.isArray(this.config.ecoflow?.devices) ? this.config.ecoflow.devices : []
+            };
+
+            const tester = new EcoflowMqtt(this, { configOverride: testCfg, testMode: true });
+            const result = await tester.testConnection();
+            await tester.stop();
+
+            this.log.info(`EcoFlow MQTT test successful (${result.protocol}://${result.url}:${result.port}, userId=${result.userId}).`);
+            respond({ test_ok: `${result.protocol}://${result.url}:${result.port}` });
+        } catch (err) {
+            this.log.error(`EcoFlow MQTT test failed: ${err.message}`);
+            respond({ test_err: err.message });
         }
     }
 

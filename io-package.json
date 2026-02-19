@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.5",
+    "version": "0.1.6",
     "news": {
+      "0.1.6": {
+        "en": "Add detailed EcoFlow connection logging and admin test-connection button",
+        "de": "Detailliertes EcoFlow-Verbindungslogging und Admin-Button zum Verbindungstest ergänzt"
+      },
       "0.1.5": {
         "en": "Admin compatibility fix: EcoFlow credentials and device list are always visible in the EcoFlow tab",
         "de": "Admin-Kompatibilitätsfix: EcoFlow-Zugangsdaten und Geräteliste sind im EcoFlow-Tab immer sichtbar"
