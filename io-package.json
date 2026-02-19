@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.18",
+    "version": "0.1.19",
     "news": {
+      "0.1.19": {
+        "en": "Hard reset now removes full adapter object/state tree and then restores default native config for a clean start",
+        "de": "Hard-Reset löscht jetzt den kompletten Objekt-/State-Baum des Adapters und stellt danach die Default-Native-Konfiguration für einen sauberen Neustart wieder her"
+      },
       "0.1.18": {
         "en": "Fix EcoFlow admin field visibility by binding back to ecoflow.* keys, prevent empty device arrays from overriding configured devices, and start MQTT only when devices exist",
         "de": "Sichtbarkeit der EcoFlow-Adminfelder durch Rückbindung an ecoflow.*-Keys behoben, Überschreiben konfigurierter Geräte durch leere Arrays verhindert und MQTT-Start nur noch mit vorhandenen Geräten"

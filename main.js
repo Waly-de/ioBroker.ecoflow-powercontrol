@@ -981,6 +981,26 @@ class EcoflowPowerControl extends utils.Adapter {
         try {
             this.log.warn('Admin command received: reset all adapter settings');
 
+            if (this.ecoflowMqtt) {
+                try {
+                    await this.ecoflowMqtt.stop();
+                } catch (e) {
+                    this.log.warn(`Could not stop EcoFlow MQTT before reset: ${e.message}`);
+                }
+                this.ecoflowMqtt = null;
+            }
+
+            if (this.regulationInterval) {
+                clearInterval(this.regulationInterval);
+                this.regulationInterval = null;
+            }
+            if (this.heartbeatInterval) {
+                clearInterval(this.heartbeatInterval);
+                this.heartbeatInterval = null;
+            }
+
+            await this._wipeOwnObjectTree();
+
             const instanceObjectId = `system.adapter.${this.namespace}`;
             const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
             if (!instanceObj) {
@@ -993,13 +1013,46 @@ class EcoflowPowerControl extends utils.Adapter {
             await this.setStateAsync('commands.testConnection', '', true);
             await this.setForeignObjectAsync(instanceObjectId, instanceObj);
 
-            const message = 'All adapter settings reset to defaults. Adapter will restart now.';
+            const message = 'Hard reset completed: all settings and adapter states removed. Adapter will restart now.';
             this.log.warn(message);
             await this.setStateAsync('commands.lastResult', message, true);
         } catch (err) {
             const message = `Reset failed: ${err.message}`;
             this.log.error(message);
             await this.setStateAsync('commands.lastResult', message, true);
+        }
+    }
+
+    async _wipeOwnObjectTree() {
+        const rootIds = [
+            `${this.namespace}.commands`,
+            `${this.namespace}.ecoflow`,
+            `${this.namespace}.inverters`,
+            `${this.namespace}.regulation`,
+            `${this.namespace}.info`
+        ];
+
+        for (const fullId of rootIds) {
+            try {
+                await this.delForeignObjectAsync(fullId, { recursive: true });
+                this.log.warn(`Reset cleanup: removed ${fullId}`);
+            } catch (_) {
+                // ignore missing roots
+            }
+        }
+
+        try {
+            const allObjects = await this.getForeignObjectsAsync(`${this.namespace}.*`);
+            const allIds = Object.keys(allObjects || {}).sort((a, b) => b.length - a.length);
+            for (const id of allIds) {
+                try {
+                    await this.delForeignObjectAsync(id);
+                } catch (_) {
+                    // ignore if already removed by recursive delete
+                }
+            }
+        } catch (e) {
+            this.log.warn(`Reset cleanup residual scan failed: ${e.message}`);
         }
     }
 
