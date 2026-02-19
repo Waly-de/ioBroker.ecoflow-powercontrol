@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.4",
+    "version": "0.1.5",
     "news": {
+      "0.1.5": {
+        "en": "Admin compatibility fix: EcoFlow credentials and device list are always visible in the EcoFlow tab",
+        "de": "Admin-Kompatibilitätsfix: EcoFlow-Zugangsdaten und Geräteliste sind im EcoFlow-Tab immer sichtbar"
+      },
       "0.1.4": {
         "en": "Fix EcoFlow tab visibility: remove panel wrapper and show credential fields/devices via direct hidden conditions",
         "de": "EcoFlow-Tab repariert: Panel-Wrapper entfernt und Zugangsdaten/Geräteliste über direkte hidden-Bedingungen eingeblendet"

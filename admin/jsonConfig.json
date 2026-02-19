@@ -503,32 +503,27 @@
         },
         "efCredentialsHeader": {
           "type": "staticText",
-          "text": "ecoflow_credentials",
-          "hidden": "data.ecoflow.enabled !== true"
+          "text": "ecoflow_credentials"
         },
         "efEmail": {
           "type": "text",
           "label": "ecoflow_email",
-          "attr": "ecoflow.email",
-          "hidden": "data.ecoflow.enabled !== true"
+          "attr": "ecoflow.email"
         },
         "efPassword": {
           "type": "password",
           "label": "ecoflow_password",
-          "attr": "ecoflow.password",
-          "hidden": "data.ecoflow.enabled !== true"
+          "attr": "ecoflow.password"
         },
         "efReconnectMin": {
           "type": "number",
           "label": "ecoflow_reconnectmin",
           "attr": "ecoflow.reconnectMin",
-          "default": 30,
-          "hidden": "data.ecoflow.enabled !== true"
+          "default": 30
         },
         "efDevicesHeader": {
           "type": "staticText",
-          "text": "ecoflow_devices_header",
-          "hidden": "data.ecoflow.enabled !== true"
+          "text": "ecoflow_devices_header"
         },
         "efDevices": {
           "type": "table",
@@ -536,7 +531,6 @@
           "label": "ecoflow_devices",
           "noDelete": false,
           "noAdd": false,
-          "hidden": "data.ecoflow.enabled !== true",
           "items": [
             {
               "attr": "serial",
@@ -612,8 +606,7 @@
         },
         "efPathsHint": {
           "type": "staticText",
-          "text": "ecoflow_statepaths_hint",
-          "hidden": "data.ecoflow.enabled !== true"
+          "text": "ecoflow_statepaths_hint"
         }
       }
     },
