@@ -321,6 +321,66 @@
       "native": {}
     },
     {
+      "_id": "commands",
+      "type": "channel",
+      "common": {
+        "name": "Admin Commands"
+      },
+      "native": {}
+    },
+    {
+      "_id": "commands.testConnection",
+      "type": "state",
+      "common": {
+        "name": "Trigger EcoFlow connection test",
+        "type": "string",
+        "role": "state",
+        "read": true,
+        "write": true,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "commands.importLegacyScript",
+      "type": "state",
+      "common": {
+        "name": "Trigger import from legacy script",
+        "type": "string",
+        "role": "state",
+        "read": true,
+        "write": true,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "commands.lastResult",
+      "type": "state",
+      "common": {
+        "name": "Last command result",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "commands.resetAllSettings",
+      "type": "state",
+      "common": {
+        "name": "Reset all adapter settings to defaults",
+        "type": "boolean",
+        "role": "button",
+        "read": true,
+        "write": true,
+        "def": false
+      },
+      "native": {}
+    },
+    {
       "_id": "inverters",
       "type": "channel",
       "common": {

@@ -78,6 +78,8 @@
   "ecoflow_import_error": "Import failed",
   "ecoflow_import_triggered": "Import started – result in adapter log and state commands.lastResult",
   "ecoflow_import_hint": "Paste the complete script content above and then click 💾 SAVE below. The adapter automatically imports ConfigData on restart. No button click needed!",
+  "ecoflow_command_status_header": "Command status (live)",
+  "ecoflow_command_lastresult": "Last command result",
   "ecoflow_devices_header": "EcoFlow Devices",
   "ecoflow_devices": "Device list",
   "col_ef_serial": "Serial number",

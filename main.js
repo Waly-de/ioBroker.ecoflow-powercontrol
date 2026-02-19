@@ -219,7 +219,11 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         if (id === `${this.namespace}.commands.testConnection`) {
-            if (state.ack) return;
+            this.log.debug(`Admin command state write: testConnection ack=${state.ack} val=${JSON.stringify(state.val)}`);
+            const hasPayload = typeof state.val === 'string'
+                ? state.val.trim().length > 0
+                : state.val !== undefined && state.val !== null && String(state.val).trim() !== '';
+            if (!hasPayload) return;
             try {
                 await this._runTestConnectionFromState(state.val);
             } finally {
@@ -229,7 +233,11 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         if (id === `${this.namespace}.commands.importLegacyScript`) {
-            if (state.ack) return;
+            this.log.debug(`Admin command state write: importLegacyScript ack=${state.ack} valLength=${typeof state.val === 'string' ? state.val.length : 0}`);
+            const hasPayload = typeof state.val === 'string'
+                ? state.val.trim().length > 0
+                : state.val !== undefined && state.val !== null && String(state.val).trim() !== '';
+            if (!hasPayload) return;
             try {
                 await this._runImportFromState(state.val);
             } finally {
@@ -239,7 +247,9 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         if (id === `${this.namespace}.commands.resetAllSettings`) {
-            if (state.ack) return;
+            this.log.debug(`Admin command state write: resetAllSettings ack=${state.ack} val=${JSON.stringify(state.val)}`);
+            const triggerReset = state.val === true || state.val === 1 || state.val === '1' || String(state.val).toLowerCase() === 'true';
+            if (!triggerReset) return;
             try {
                 await this._runResetAllFromState();
             } finally {
@@ -999,8 +1009,6 @@ class EcoflowPowerControl extends utils.Adapter {
                 this.heartbeatInterval = null;
             }
 
-            await this._wipeOwnObjectTree();
-
             const instanceObjectId = `system.adapter.${this.namespace}`;
             const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
             if (!instanceObj) {
@@ -1008,10 +1016,13 @@ class EcoflowPowerControl extends utils.Adapter {
             }
 
             instanceObj.native = this._getDefaultNativeConfig();
+            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
+
+            await this._wipeOwnObjectTree({ keepCommands: true, keepInfo: true });
+
             await this.setStateAsync('commands.resetAllSettings', false, true);
             await this.setStateAsync('commands.importLegacyScript', '', true);
             await this.setStateAsync('commands.testConnection', '', true);
-            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
 
             const message = 'Hard reset completed: all settings and adapter states removed. Adapter will restart now.';
             this.log.warn(message);
@@ -1023,14 +1034,21 @@ class EcoflowPowerControl extends utils.Adapter {
         }
     }
 
-    async _wipeOwnObjectTree() {
+    async _wipeOwnObjectTree(options = {}) {
+        const keepCommands = options.keepCommands !== undefined ? !!options.keepCommands : false;
+        const keepInfo = options.keepInfo !== undefined ? !!options.keepInfo : false;
+
         const rootIds = [
             `${this.namespace}.commands`,
             `${this.namespace}.ecoflow`,
             `${this.namespace}.inverters`,
             `${this.namespace}.regulation`,
             `${this.namespace}.info`
-        ];
+        ].filter(fullId => {
+            if (keepCommands && fullId === `${this.namespace}.commands`) return false;
+            if (keepInfo && fullId === `${this.namespace}.info`) return false;
+            return true;
+        });
 
         for (const fullId of rootIds) {
             try {
@@ -1045,6 +1063,12 @@ class EcoflowPowerControl extends utils.Adapter {
             const allObjects = await this.getForeignObjectsAsync(`${this.namespace}.*`);
             const allIds = Object.keys(allObjects || {}).sort((a, b) => b.length - a.length);
             for (const id of allIds) {
+                if (keepCommands && (id === `${this.namespace}.commands` || id.startsWith(`${this.namespace}.commands.`))) {
+                    continue;
+                }
+                if (keepInfo && (id === `${this.namespace}.info` || id.startsWith(`${this.namespace}.info.`))) {
+                    continue;
+                }
                 try {
                     await this.delForeignObjectAsync(id);
                 } catch (_) {

@@ -567,6 +567,18 @@
           "type": "staticText",
           "text": "ecoflow_import_hint"
         },
+        "efCommandStatusHeader": {
+          "type": "staticText",
+          "text": "ecoflow_command_status_header"
+        },
+        "efLastResult": {
+          "type": "state",
+          "label": "ecoflow_command_lastresult",
+          "foreign": true,
+          "oid": "ecoflow-powercontrol.%INSTANCE%.commands.lastResult",
+          "control": "text",
+          "readOnly": true
+        },
         "efDevicesHeader": {
           "type": "staticText",
           "text": "ecoflow_devices_header"
