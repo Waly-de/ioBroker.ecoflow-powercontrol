@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.2",
+    "version": "0.1.3",
     "news": {
+      "0.1.3": {
+        "en": "Fix admin tables: add compatible table item definitions so Add button is shown for inverters, additional power and EcoFlow devices",
+        "de": "Admin-Tabellen repariert: kompatible Tabellen-Definition ergänzt, damit der Add-Button bei Wechselrichtern, Zusatzleistung und EcoFlow-Geräten angezeigt wird"
+      },
       "0.1.2": {
         "en": "Fix admin UI: replace header-type with staticText, use panels for reliable conditional display",
         "de": "Admin-UI repariert: header-Typ durch staticText ersetzt, Panels für zuverlässige bedingte Anzeige"
