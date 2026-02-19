@@ -6,7 +6,7 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.38",
+    "version": "0.1.40",
     "news": {
       "0.1.38": {
         "en": "Fix config normalization: empty flat keys no longer overwrite non-empty nested values (affects regulation and other tabs), plus regulation snapshot diagnostics",
@@ -167,6 +167,10 @@
       "0.1.39": {
         "en": "Dump raw this.config and instanceObj.native for smartmeter debug",
         "de": "Raw-Config-Dump für Smartmeter-Debugging"
+      },
+      "0.1.40": {
+        "en": "Fix: read smartmeterStateId from regSmStateId element key",
+        "de": "Fix: Smartmeter-ID aus regSmStateId-Key lesen (ioBroker-Admin-Kompatibilität)"
       }
     },
     "desc": {
@@ -470,5 +474,5 @@
       "native": {}
     }
   ],
-  "version": "0.1.39"
+  "version": "0.1.40"
 }

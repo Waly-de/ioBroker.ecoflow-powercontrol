@@ -941,17 +941,25 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
+        // NOTE: ioBroker may store the value under the element key (regSmStateId)
+        // instead of the attr path (regulation.smartmeterStateId) depending on admin version.
         const runtimeValue = this._normalizeStateIdInput(
             runtimeCfg?.regulation?.smartmeterStateId ||
             runtimeCfg?.['regulation.smartmeterStateId'] ||
+            runtimeCfg?.regSmStateId ||
             ''
         );
         const nativeValue = this._normalizeStateIdInput(
             nativeCfg?.regulation?.smartmeterStateId ||
             nativeCfg?.['regulation.smartmeterStateId'] ||
+            nativeCfg?.regSmStateId ||
             ''
         );
-        const mergedValue = this._normalizeStateIdInput(mergedCfg?.regulation?.smartmeterStateId || '');
+        const mergedValue = this._normalizeStateIdInput(
+            mergedCfg?.regulation?.smartmeterStateId ||
+            mergedCfg?.regSmStateId ||
+            ''
+        );
 
         this.log.info(`Smartmeter strict-config sources: runtime='${runtimeValue}' native='${nativeValue}' merged='${mergedValue}'`);
 
