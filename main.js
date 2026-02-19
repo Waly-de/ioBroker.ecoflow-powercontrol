@@ -691,6 +691,25 @@ class EcoflowPowerControl extends utils.Adapter {
         if (oldCfg.ExcessChargeBatSocOff !== undefined) patch.excessCharge.batSocOff = toNumber(oldCfg.ExcessChargeBatSocOff, 100);
         if (oldCfg.ExcessChargeSwitchMin !== undefined) patch.excessCharge.switchMinMin = toNumber(oldCfg.ExcessChargeSwitchMin, 5);
 
+        // Mirror values for admin variants that store/read top-level ec* keys
+        if (patch.excessCharge.enabled !== undefined) patch.ecEnabled = patch.excessCharge.enabled;
+        if (patch.excessCharge.powerStateId !== undefined) patch.ecPowerStateId = patch.excessCharge.powerStateId;
+        if (patch.excessCharge.batSocStateId !== undefined) patch.ecBatSocStateId = patch.excessCharge.batSocStateId;
+        if (patch.excessCharge.actualPowerStateId !== undefined) patch.ecActualPowerStateId = patch.excessCharge.actualPowerStateId;
+        if (patch.excessCharge.switchStateId !== undefined) patch.ecSwitchStateId = patch.excessCharge.switchStateId;
+        if (patch.excessCharge.switchOnValue !== undefined) patch.ecSwitchOnValue = patch.excessCharge.switchOnValue;
+        if (patch.excessCharge.switchOffValue !== undefined) patch.ecSwitchOffValue = patch.excessCharge.switchOffValue;
+        if (patch.excessCharge.maxPower !== undefined) patch.ecMaxPower = patch.excessCharge.maxPower;
+        if (patch.excessCharge.offsetPower !== undefined) patch.ecOffsetPower = patch.excessCharge.offsetPower;
+        if (patch.excessCharge.startPower !== undefined) patch.ecStartPower = patch.excessCharge.startPower;
+        if (patch.excessCharge.stopPower !== undefined) patch.ecStopPower = patch.excessCharge.stopPower;
+        if (patch.excessCharge.startDurationMin !== undefined) patch.ecStartDurationMin = patch.excessCharge.startDurationMin;
+        if (patch.excessCharge.minRegulatePauseMin !== undefined) patch.ecMinRegulatePauseMin = patch.excessCharge.minRegulatePauseMin;
+        if (patch.excessCharge.regulateSteps !== undefined) patch.ecRegulateSteps = patch.excessCharge.regulateSteps;
+        if (patch.excessCharge.batSocMax !== undefined) patch.ecBatSocMax = patch.excessCharge.batSocMax;
+        if (patch.excessCharge.batSocOff !== undefined) patch.ecBatSocOff = patch.excessCharge.batSocOff;
+        if (patch.excessCharge.switchMinMin !== undefined) patch.ecSwitchMinMin = patch.excessCharge.switchMinMin;
+
         if (oldCfg.Debug !== undefined) patch.advanced.debug = !!oldCfg.Debug;
         if (oldCfg.mlog !== undefined) patch.advanced.mlog = !!oldCfg.mlog;
         if (oldCfg.AdditionalPowerAvgPeriod !== undefined) patch.advanced.avgPeriodMs = toNumber(oldCfg.AdditionalPowerAvgPeriod, 15000);
