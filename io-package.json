@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.20",
+    "version": "0.1.21",
     "news": {
+      "0.1.21": {
+        "en": "Add repository/readme metadata for improved compatibility in GitHub install dialog",
+        "de": "Repository-/Readme-Metadaten für bessere Kompatibilität im GitHub-Installationsdialog ergänzt"
+      },
       "0.1.20": {
         "en": "Admin jsonConfig tables switched to key-based item definitions and simplified column lists for improved compatibility",
         "de": "Admin-jsonConfig-Tabellen auf key-basierte Item-Definitionen und vereinfachte Spaltenlisten umgestellt für bessere Kompatibilität"
@@ -100,6 +104,11 @@
     "authors": [
       "Markus Walber <markus@walber.de>"
     ],
+    "readme": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol/blob/main/README.md",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol.git"
+    },
     "enabled": true,
     "platform": "Javascript/Node.js",
     "mode": "daemon",

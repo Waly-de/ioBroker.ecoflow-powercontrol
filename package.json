@@ -1,12 +1,19 @@
 {
   "name": "iobroker.ecoflow-powercontrol",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "ioBroker adapter for generic solar inverter power regulation with optional EcoFlow MQTT bridge",
   "author": {
     "name": "Markus Walber",
     "email": "markus@walber.de"
   },
   "homepage": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol/issues"
+  },
   "license": "MIT",
   "keywords": [
     "ioBroker",
