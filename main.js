@@ -40,6 +40,8 @@ class EcoflowPowerControl extends utils.Adapter {
 
         const cfg = this.config;
 
+        await this._createCommandObjects();
+
         // ── 1. Create dynamic object tree for configured inverters
         await this._createInverterObjects(cfg.inverters || []);
 
@@ -94,6 +96,8 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 6. Subscribe to own states
         await this.subscribeStatesAsync('regulation.enabled');
+        await this.subscribeStatesAsync('commands.testConnection');
+        await this.subscribeStatesAsync('commands.importLegacyScript');
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         await this._subscribeForeignStates(cfg);
@@ -171,6 +175,20 @@ class EcoflowPowerControl extends utils.Adapter {
                     await this.regulation.handleEnabled();
                 }
             }
+            return;
+        }
+
+        if (id === `${this.namespace}.commands.testConnection`) {
+            if (state.ack) return;
+            await this.setStateAsync('commands.testConnection', state.val, true);
+            await this._runTestConnectionFromState(state.val);
+            return;
+        }
+
+        if (id === `${this.namespace}.commands.importLegacyScript`) {
+            if (state.ack) return;
+            await this.setStateAsync('commands.importLegacyScript', state.val, true);
+            await this._runImportFromState(state.val);
             return;
         }
 
@@ -515,6 +533,129 @@ class EcoflowPowerControl extends utils.Adapter {
             }
         }
         return target;
+    }
+
+    async _createCommandObjects() {
+        await this.setObjectNotExistsAsync('commands', {
+            type: 'channel',
+            common: { name: 'Admin Commands' },
+            native: {}
+        });
+
+        await this.setObjectNotExistsAsync('commands.testConnection', {
+            type: 'state',
+            common: {
+                name: 'Trigger EcoFlow connection test',
+                type: 'string',
+                role: 'state',
+                read: true,
+                write: true,
+                def: ''
+            },
+            native: {}
+        });
+
+        await this.setObjectNotExistsAsync('commands.importLegacyScript', {
+            type: 'state',
+            common: {
+                name: 'Trigger import from legacy script',
+                type: 'string',
+                role: 'state',
+                read: true,
+                write: true,
+                def: ''
+            },
+            native: {}
+        });
+
+        await this.setObjectNotExistsAsync('commands.lastResult', {
+            type: 'state',
+            common: {
+                name: 'Last command result',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: false,
+                def: ''
+            },
+            native: {}
+        });
+    }
+
+    async _runTestConnectionFromState(rawPayload) {
+        try {
+            let payload = {};
+            if (typeof rawPayload === 'string' && rawPayload.trim()) {
+                try {
+                    payload = JSON.parse(rawPayload);
+                } catch {
+                    payload = {};
+                }
+            }
+
+            const email = String(payload.email || this.config.ecoflow?.email || '').trim();
+            const password = String(payload.password || this.config.ecoflow?.password || '').trim();
+            const reconnectMin = Number(payload.reconnectMin || this.config.ecoflow?.reconnectMin || 30) || 30;
+
+            if (!email || !password) {
+                throw new Error('EcoFlow credentials missing for test.');
+            }
+
+            const testCfg = {
+                ...(this.config.ecoflow || {}),
+                email,
+                password,
+                reconnectMin,
+                devices: Array.isArray(this.config.ecoflow?.devices) ? this.config.ecoflow.devices : []
+            };
+
+            let tester = null;
+            try {
+                tester = new EcoflowMqtt(this, { configOverride: testCfg, testMode: true });
+                const result = await tester.testConnection();
+                const message = `EcoFlow test OK (${result.protocol}://${result.url}:${result.port}, userId=${result.userId})`;
+                this.log.info(message);
+                await this.setStateAsync('commands.lastResult', message, true);
+            } finally {
+                if (tester) await tester.stop();
+            }
+        } catch (err) {
+            const message = `EcoFlow test failed: ${err.message}`;
+            this.log.error(message);
+            await this.setStateAsync('commands.lastResult', message, true);
+        }
+    }
+
+    async _runImportFromState(rawScript) {
+        try {
+            const script = String(rawScript || '').trim();
+            if (!script) {
+                throw new Error('No legacy script content in import command payload.');
+            }
+
+            const legacyConfig = this._parseLegacyScriptConfig(script);
+            const patch = this._mapLegacyConfigToNative(legacyConfig);
+
+            const instanceObjectId = `system.adapter.${this.namespace}`;
+            const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
+            if (!instanceObj) {
+                throw new Error(`Instance object not found: ${instanceObjectId}`);
+            }
+
+            instanceObj.native = this._deepMerge(instanceObj.native || {}, patch);
+            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
+
+            const importedDevices = Array.isArray(instanceObj.native?.ecoflow?.devices) ? instanceObj.native.ecoflow.devices.length : 0;
+            const importedInverters = Array.isArray(instanceObj.native?.inverters) ? instanceObj.native.inverters.length : 0;
+
+            const message = `Legacy import OK (devices:${importedDevices}, inverters:${importedInverters}). Reopen admin and save.`;
+            this.log.info(message);
+            await this.setStateAsync('commands.lastResult', message, true);
+        } catch (err) {
+            const message = `Legacy import failed: ${err.message}`;
+            this.log.error(message);
+            await this.setStateAsync('commands.lastResult', message, true);
+        }
     }
 
     // ──────────────────────────────────────────────────────────── object creation

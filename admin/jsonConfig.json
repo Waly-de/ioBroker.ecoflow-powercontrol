@@ -522,20 +522,13 @@
           "default": 30
         },
         "efTestConnection": {
-          "type": "sendTo",
+          "type": "setState",
           "label": "ecoflow_test_connection",
-          "command": "testEcoflowConnection",
-          "jsonData": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
+          "id": "ecoflow-powercontrol.%INSTANCE%.commands.testConnection",
+          "ack": false,
+          "val": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
           "variant": "contained",
-          "icon": "search",
-          "showProcess": true,
-          "timeout": 20000,
-          "result": {
-            "test_ok": "ecoflow_test_success"
-          },
-          "error": {
-            "test_err": "ecoflow_test_error"
-          }
+          "okText": "ecoflow_test_triggered"
         },
         "efTestHint": {
           "type": "staticText",
@@ -553,23 +546,13 @@
           "maxRows": 20
         },
         "efImportSettings": {
-          "type": "sendTo",
+          "type": "setState",
           "label": "ecoflow_import_button",
-          "command": "importOldScriptSettings",
-          "data": {
-            "script": "${data.ecoflow.legacyScriptImport}"
-          },
+          "id": "ecoflow-powercontrol.%INSTANCE%.commands.importLegacyScript",
+          "ack": false,
+          "val": "${data.ecoflow.legacyScriptImport}",
           "variant": "contained",
-          "icon": "send",
-          "showProcess": true,
-          "timeout": 60000,
-          "useNative": true,
-          "result": {
-            "import_ok": "ecoflow_import_success"
-          },
-          "error": {
-            "import_err": "ecoflow_import_error"
-          }
+          "okText": "ecoflow_import_triggered"
         },
         "efImportHint": {
           "type": "staticText",

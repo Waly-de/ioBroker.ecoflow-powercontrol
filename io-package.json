@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.7",
+    "version": "0.1.8",
     "news": {
+      "0.1.8": {
+        "en": "Improve admin compatibility: test/import now run via command states; add import result state and robust command handling",
+        "de": "Admin-Kompatibilität verbessert: Test/Import laufen über Command-States; Ergebnis-State und robuste Command-Verarbeitung ergänzt"
+      },
       "0.1.7": {
         "en": "Fix EcoFlow connection handling according to legacy script and add old-script config import in admin",
         "de": "EcoFlow-Verbindungslogik am Legacy-Script ausgerichtet und Import alter Script-Konfiguration in Admin ergänzt"
