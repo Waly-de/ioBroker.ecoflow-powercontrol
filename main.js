@@ -460,8 +460,13 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     _parseLegacyScriptConfig(scriptText) {
-        const marker = 'var ConfigData';
-        const markerIndex = scriptText.lastIndexOf(marker);
+        // Use regex with negative lookahead so 'var ConfigDatasim' etc. are NOT matched
+        const configDataRegex = /var ConfigData(?!\w)/g;
+        let regexMatch;
+        let markerIndex = -1;
+        while ((regexMatch = configDataRegex.exec(scriptText)) !== null) {
+            markerIndex = regexMatch.index;
+        }
         if (markerIndex === -1) {
             throw new Error('ConfigData block not found in script.');
         }
@@ -610,7 +615,12 @@ class EcoflowPowerControl extends utils.Adapter {
             oldCfg.smartmeterId,
             oldCfg.smartmeterStateId
         ].find(value => value !== undefined && value !== null && String(value).trim() !== '');
-        if (smartmeterId !== undefined) patch.regulation.smartmeterStateId = String(smartmeterId || '').trim();
+        if (smartmeterId !== undefined) {
+            const smId = String(smartmeterId || '').trim();
+            patch.regulation.smartmeterStateId = smId;
+            // Also set the flat key that ioBroker admin stores/reads (element key 'regSmStateId')
+            patch.regSmStateId = smId;
+        }
         if (oldCfg.SmartmeterTimeoutMin !== undefined) patch.regulation.smartmeterTimeoutMin = toNumber(oldCfg.SmartmeterTimeoutMin, 4);
         if (oldCfg.SmartmeterFallbackPower !== undefined) patch.regulation.smartmeterFallbackPower = toNumber(oldCfg.SmartmeterFallbackPower, 150);
         if (oldCfg.RegulationIntervalSec !== undefined) patch.regulation.intervalSec = toNumber(oldCfg.RegulationIntervalSec, 15);
