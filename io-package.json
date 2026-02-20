@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.46",
+    "version": "0.1.47",
     "news": {
+      "0.1.47": {
+        "en": "Fix regulation.totalPV to include additionalPVSum (inverters + additional PV)",
+        "de": "Fix für regulation.totalPV: additionalPVSum wird jetzt mitgerechnet (Wechselrichter + zusätzliche PV)"
+      },
       "0.1.38": {
         "en": "Fix config normalization: empty flat keys no longer overwrite non-empty nested values (affects regulation and other tabs), plus regulation snapshot diagnostics",
         "de": "Konfig-Normalisierung korrigiert: leere flache Keys überschreiben keine nicht-leeren verschachtelten Werte mehr (betrifft Regelung und weitere Tabs), plus Regulation-Snapshot-Diagnose"
@@ -343,7 +347,7 @@
       "_id": "regulation.totalPV",
       "type": "state",
       "common": {
-        "name": "Total PV power across all inverters",
+        "name": "Total PV power (inverters + additional PV)",
         "role": "value.power",
         "type": "number",
         "unit": "W",
@@ -478,5 +482,5 @@
       "native": {}
     }
   ],
-  "version": "0.1.46"
+  "version": "0.1.47"
 }
