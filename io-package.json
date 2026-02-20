@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.47",
+    "version": "0.1.48",
     "news": {
+      "0.1.48": {
+        "en": "Fix MQTT state write for object/array payloads (store as JSON string) and reduce false subscribe-timeout warnings during startup",
+        "de": "MQTT-State-Write für Objekt/Array-Payloads korrigiert (als JSON-String speichern) und falsche Subscribe-Timeout-Warnungen beim Start reduziert"
+      },
       "0.1.47": {
         "en": "Fix regulation.totalPV to include additionalPVSum (inverters + additional PV)",
         "de": "Fix für regulation.totalPV: additionalPVSum wird jetzt mitgerechnet (Wechselrichter + zusätzliche PV)"
@@ -482,5 +486,5 @@
       "native": {}
     }
   ],
-  "version": "0.1.47"
+  "version": "0.1.48"
 }

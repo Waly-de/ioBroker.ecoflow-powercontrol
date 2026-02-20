@@ -1137,7 +1137,7 @@ class EcoflowPowerControl extends utils.Adapter {
         }
     }
 
-    async _subscribeOwnStatesSafe(stateIds, timeoutMs = 4000) {
+    async _subscribeOwnStatesSafe(stateIds, timeoutMs = 12000) {
         const subscribeWithTimeout = stateId => Promise.race([
             this.subscribeStatesAsync(stateId),
             new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs))
@@ -1148,7 +1148,11 @@ class EcoflowPowerControl extends utils.Adapter {
                 await subscribeWithTimeout(stateId);
                 this.log.info(`Subscribed to own state: ${stateId}`);
             } catch (err) {
-                this.log.warn(`Could not subscribe to own state ${stateId}: ${err.message}`);
+                if (err && String(err.message || '').includes('timeout after')) {
+                    this.log.info(`Subscribe own state pending/slow (${stateId}): ${err.message}`);
+                } else {
+                    this.log.warn(`Could not subscribe to own state ${stateId}: ${err.message}`);
+                }
             }
         }
     }
@@ -1522,7 +1526,7 @@ class EcoflowPowerControl extends utils.Adapter {
     // ──────────────────────────────────────────────────────────── foreign subscriptions
 
     async _subscribeForeignStates(cfg) {
-        const subscribeWithTimeout = async (id, timeoutMs = 4000) => {
+        const subscribeWithTimeout = async (id, timeoutMs = 12000) => {
             return Promise.race([
                 this.subscribeForeignStatesAsync(id),
                 new Promise((_, reject) => {
@@ -1541,11 +1545,15 @@ class EcoflowPowerControl extends utils.Adapter {
                     return;
                 }
 
-                await subscribeWithTimeout(normalizedId, 4000);
+                await subscribeWithTimeout(normalizedId, 12000);
                 this.foreignSubscriptions.add(normalizedId);
                 this.log.info(`Subscribed to foreign state: ${normalizedId}`);
             } catch (e) {
-                this.log.warn(`Could not subscribe to foreign state ${normalizedId}: ${e.message}`);
+                if (e && String(e.message || '').includes('timeout after')) {
+                    this.log.info(`Subscribe foreign state pending/slow (${normalizedId}): ${e.message}`);
+                } else {
+                    this.log.warn(`Could not subscribe to foreign state ${normalizedId}: ${e.message}`);
+                }
             }
         };
 
