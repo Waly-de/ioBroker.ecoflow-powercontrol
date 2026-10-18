@@ -6,8 +6,12 @@
       "de": "EcoFlow PowerControl",
       "en": "EcoFlow PowerControl"
     },
-    "version": "0.1.48",
+    "version": "0.1.49",
     "news": {
+      "0.1.49": {
+        "en": "Fix regulation units, manual stop, excess charging, history timeouts, MQTT freshness, TLS and configuration migration; add automated tests.",
+        "de": "Reglereinheiten, manuelles Aus, Überschussladung, History-Timeouts, MQTT-Frische, TLS und Konfigurationsmigration korrigiert; automatisierte Tests ergänzt."
+      },
       "0.1.48": {
         "en": "Fix MQTT state write for object/array payloads (store as JSON string) and reduce false subscribe-timeout warnings during startup",
         "de": "MQTT-State-Write für Objekt/Array-Payloads korrigiert (als JSON-String speichern) und falsche Subscribe-Timeout-Warnungen beim Start reduziert"
@@ -208,7 +212,11 @@
         "js-controller": ">=5.0.0"
       }
     ],
-    "globalDependencies": [],
+    "globalDependencies": [
+      {
+        "admin": ">=6.0.0"
+      }
+    ],
     "keywords": [
       "ecoflow",
       "powerstream",
@@ -216,7 +224,8 @@
       "solar",
       "regulation",
       "smartmeter"
-    ]
+    ],
+    "stopTimeout": 10000
   },
   "native": {
     "regulation": {
@@ -258,16 +267,10 @@
     "ecoflow": {
       "enabled": false,
       "email": "",
-      "password": "",
       "reconnectMin": 30,
-      "devices": [],
-      "legacyScriptImport": ""
+      "devices": []
     },
-    "efEnabled": false,
-    "efEmail": "",
     "efPassword": "",
-    "efReconnectMin": 30,
-    "efDevices": [],
     "efLegacyScriptImport": "",
     "advanced": {
       "debug": false,
@@ -486,5 +489,17 @@
       "native": {}
     }
   ],
-  "version": "0.1.48"
+  "version": "0.1.48",
+  "encryptedNative": [
+    "efPassword",
+    "efLegacyScriptImport"
+  ],
+  "protectedNative": [
+    "efPassword",
+    "efLegacyScriptImport",
+    "ecoflow",
+    "password",
+    "ecoflow.password",
+    "ecoflow.legacyScriptImport"
+  ]
 }

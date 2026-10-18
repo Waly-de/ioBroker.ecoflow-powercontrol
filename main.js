@@ -3,6 +3,8 @@
 const utils = require('@iobroker/adapter-core');
 const vm = require('vm');
 const ioPackage = require('./io-package.json');
+const { LEGACY_PATHS } = require('./lib/config');
+const { isDeepStrictEqual } = require('node:util');
 const EcoflowMqtt = require('./lib/ecoflow-mqtt');
 const Regulation = require('./lib/regulation');
 
@@ -50,6 +52,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
         let cfg = await this._loadEffectiveConfig();
         this.config = cfg;
+        if (this._restartRequestedByAutoImport) return;
 
         const rawSmartmeter = cfg?.regulation?.smartmeterStateId;
         const normalizedSmartmeter = this._normalizeStateIdInput(rawSmartmeter);
@@ -109,10 +112,7 @@ class EcoflowPowerControl extends utils.Adapter {
         const ecoflowHasPassword = !!(cfg?.ecoflow?.password && String(cfg.ecoflow.password).trim());
         const ecoflowDevices = Array.isArray(cfg?.ecoflow?.devices) ? cfg.ecoflow.devices.length : 0;
         const ecoflowHasDevices = ecoflowDevices > 0;
-        const shouldStartEcoflow = (
-            (ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword && ecoflowHasDevices) ||
-            (!ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword && ecoflowHasDevices)
-        );
+        const shouldStartEcoflow = ecoflowEnabledFlag && ecoflowHasEmail && ecoflowHasPassword && ecoflowHasDevices;
 
         this.log.warn(`EcoFlow config at startup: enabled=${ecoflowEnabledFlag}, email=${ecoflowHasEmail ? 'set' : 'missing'}, password=${ecoflowHasPassword ? 'set' : 'missing'}, devices=${ecoflowDevices}`);
 
@@ -124,9 +124,6 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         if (shouldStartEcoflow) {
-            if (!ecoflowEnabledFlag) {
-                this.log.warn('EcoFlow MQTT auto-enabled because credentials are present, although checkbox is currently disabled.');
-            }
             this.log.info(`EcoFlow MQTT is enabled (devices: ${(cfg.ecoflow.devices || []).length}). Starting connection...`);
             this.ecoflowMqtt = new EcoflowMqtt(this);
             this.log.info('onReady step: EcoFlow MQTT startup (begin)');
@@ -173,7 +170,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
         // ── 7. Subscribe to foreign states (smart meter + inverter outputs + additionalPower)
         this.log.info('Starting foreign state subscriptions...');
-        this._subscribeForeignStates(cfg).then(() => {
+        this._subscribeConfiguredStates(cfg).then(() => {
             this.log.info('Foreign state subscriptions finished.');
         }).catch(err => {
             this.log.warn(`Foreign state subscriptions background error: ${err.message}`);
@@ -242,6 +239,7 @@ class EcoflowPowerControl extends utils.Adapter {
                 clearInterval(this.realPowerWatchInterval);
                 this.realPowerWatchInterval = null;
             }
+            if (this.regulation) await this.regulation.stop();
             if (this.ecoflowMqtt) {
                 await this.ecoflowMqtt.stop();
                 this.ecoflowMqtt = null;
@@ -281,7 +279,7 @@ class EcoflowPowerControl extends utils.Adapter {
         }
 
         if (id === `${this.namespace}.commands.testConnection`) {
-            this.log.debug(`Admin command state write: testConnection ack=${state.ack} val=${JSON.stringify(state.val)}`);
+            this.log.debug(`Admin command state write: testConnection ack=${state.ack}`);
             const hasPayload = typeof state.val === 'string'
                 ? state.val.trim().length > 0
                 : state.val !== undefined && state.val !== null && String(state.val).trim() !== '';
@@ -372,7 +370,7 @@ class EcoflowPowerControl extends utils.Adapter {
 
             if (obj.command === 'testEcoflowConnection') {
                 const email = String(message.email || this.config.ecoflow?.email || '').trim();
-                const password = String(message.password || this.config.ecoflow?.password || '').trim();
+                const password = String(message.password ?? this.config.ecoflow?.password ?? '');
                 const reconnectMin = Number(message.reconnectMin || this.config.ecoflow?.reconnectMin || 30) || 30;
 
                 this.log.info('EcoFlow MQTT test connection requested from admin.');
@@ -423,7 +421,7 @@ class EcoflowPowerControl extends utils.Adapter {
                 await this.setStateAsync('commands.lastResult', okMessage, true);
 
                 respond({
-                    native,
+                    native: this._plainNativeConfig(native),
                     saveConfig: true,
                     import_ok: `devices:${importedDevices};inverters:${importedInverters}`
                 });
@@ -642,9 +640,9 @@ class EcoflowPowerControl extends utils.Adapter {
                     maxPower: toNumber(device.MaxPower, 800),
                     regulation: device.regulation !== undefined ? !!device.regulation : true,
                     hasBat: device.hasBat !== undefined ? !!device.hasBat : true,
-                    outputStateId: '',
+                    outputStateId: `${this.namespace}.ecoflow.app_device_property_${device.seriennummer}.data.InverterHeartbeat.invOutputWatts`,
                     setOutputStateId: '',
-                    batterySOCStateId: '',
+                    batterySOCStateId: `${this.namespace}.ecoflow.app_device_property_${device.seriennummer}.data.InverterHeartbeat.batSoc`,
                     pvPowerStateId: '',
                     setPriorityStateId: '',
                     battPozOn: toNumber(device.battPozOn, 95),
@@ -751,198 +749,62 @@ class EcoflowPowerControl extends utils.Adapter {
         return target;
     }
 
+    _decryptStoredNative(native) {
+        const decoded = JSON.parse(JSON.stringify(native || {}));
+        for (const key of ioPackage.encryptedNative) {
+            if (typeof decoded[key] === 'string' && decoded[key].startsWith('$/aes-192-cbc:')) {
+                decoded[key] = this.decrypt(decoded[key]);
+            }
+        }
+        return decoded;
+    }
+
+    _plainNativeConfig(config) {
+        const native = this._normalizeConfig(config);
+        native.efPassword = native.ecoflow?.password ?? '';
+        native.efLegacyScriptImport = native.ecoflow?.legacyScriptImport ?? '';
+        for (const key of Object.keys(LEGACY_PATHS)) {
+            if (!ioPackage.encryptedNative.includes(key)) delete native[key];
+        }
+        for (const key of Object.keys(native)) {
+            if (key.includes('.') || key === 'password') delete native[key];
+        }
+        if (native.ecoflow) {
+            delete native.ecoflow.password;
+            delete native.ecoflow.legacyScriptImport;
+        }
+        return native;
+    }
+
+    async _saveNativeConfig(instanceObj, config) {
+        const native = this._plainNativeConfig(config);
+        for (const key of ioPackage.encryptedNative) {
+            if (native[key]) native[key] = this.encrypt(native[key]);
+        }
+        instanceObj.native = native;
+        instanceObj.encryptedNative = ioPackage.encryptedNative;
+        instanceObj.protectedNative = ioPackage.protectedNative;
+        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, instanceObj);
+    }
+
     async _loadEffectiveConfig() {
-        // --- RAW CONFIG DUMP (debug) ---
-        try {
-            const rawKeys = Object.keys(this.config || {});
-            this.log.warn(`[ConfigDump] this.config keys: ${rawKeys.join(', ')}`);
-            const smFlat = this.config?.['regulation.smartmeterStateId'];
-            const smNested = this.config?.regulation?.smartmeterStateId;
-            this.log.warn(`[ConfigDump] regulation.smartmeterStateId (flat key): '${smFlat !== undefined ? smFlat : '<undefined>'}'`);
-            this.log.warn(`[ConfigDump] this.config.regulation.smartmeterStateId (nested): '${smNested !== undefined ? smNested : '<undefined>'}'`);
-            this.log.warn(`[ConfigDump] full this.config (JSON): ${JSON.stringify(this.config || {})}`);
-        } catch (dumpErr) {
-            this.log.warn(`[ConfigDump] failed: ${dumpErr.message}`);
-        }
-        // --- END RAW CONFIG DUMP ---
-
         const runtimeCfg = this._normalizeConfig(this.config || {});
-
-        let nativeCfg = {};
-        try {
-            const instanceObjectId = `system.adapter.${this.namespace}`;
-            const instanceObj = await this.getForeignObjectAsync(instanceObjectId);
-            this.log.warn(`[ConfigDump] instanceObj.native (JSON): ${JSON.stringify(instanceObj?.native || {})}`);
-            nativeCfg = this._normalizeConfig(instanceObj?.native || {});
-
-            const runtimeEco = runtimeCfg?.ecoflow || {};
-            const nativeEco = nativeCfg?.ecoflow || {};
-            this.log.warn(
-                `EcoFlow config sources: runtime(email=${runtimeEco.email ? 'set' : 'missing'}, password=${runtimeEco.password ? 'set' : 'missing'}, devices=${Array.isArray(runtimeEco.devices) ? runtimeEco.devices.length : 0}) ` +
-                `native(email=${nativeEco.email ? 'set' : 'missing'}, password=${nativeEco.password ? 'set' : 'missing'}, devices=${Array.isArray(nativeEco.devices) ? nativeEco.devices.length : 0})`
-            );
-
-            const runtimeAltEmail = runtimeCfg?.efEmail;
-            const runtimeAltPassword = runtimeCfg?.efPassword;
-            const runtimeAltDevices = runtimeCfg?.efDevices;
-            const nativeAltEmail = nativeCfg?.efEmail;
-            const nativeAltPassword = nativeCfg?.efPassword;
-            const nativeAltDevices = nativeCfg?.efDevices;
-            if (runtimeAltEmail !== undefined || runtimeAltPassword !== undefined || runtimeAltDevices !== undefined || nativeAltEmail !== undefined || nativeAltPassword !== undefined || nativeAltDevices !== undefined) {
-                this.log.warn(
-                    `Detected alternative admin keys: runtime(efEmail=${runtimeAltEmail ? 'set' : 'missing'}, efPassword=${runtimeAltPassword ? 'set' : 'missing'}, efDevices=${Array.isArray(runtimeAltDevices) ? runtimeAltDevices.length : 0}) ` +
-                    `native(efEmail=${nativeAltEmail ? 'set' : 'missing'}, efPassword=${nativeAltPassword ? 'set' : 'missing'}, efDevices=${Array.isArray(nativeAltDevices) ? nativeAltDevices.length : 0})`
-                );
-            }
-        } catch (err) {
-            this.log.warn(`Could not read instance native config: ${err.message}`);
-        }
-
-        const mergedCfg = this._deepMerge(JSON.parse(JSON.stringify(runtimeCfg || {})), nativeCfg || {});
-        if (!mergedCfg.ecoflow || typeof mergedCfg.ecoflow !== 'object' || Array.isArray(mergedCfg.ecoflow)) {
-            mergedCfg.ecoflow = {};
-        }
-        if (!mergedCfg.regulation || typeof mergedCfg.regulation !== 'object' || Array.isArray(mergedCfg.regulation)) {
-            mergedCfg.regulation = {};
-        }
-
-        const firstNonEmpty = (...values) => {
-            for (const value of values) {
-                if (value === undefined || value === null) continue;
-                const text = String(value).trim();
-                if (text) return text;
-            }
-            return '';
-        };
-
-        mergedCfg.ecoflow.email = firstNonEmpty(
-            mergedCfg.ecoflow.email,
-            nativeCfg?.ecoflow?.email,
-            nativeCfg?.['ecoflow.email'],
-            nativeCfg?.efEmail,
-            nativeCfg?.email,
-            runtimeCfg?.ecoflow?.email,
-            runtimeCfg?.['ecoflow.email'],
-            runtimeCfg?.efEmail,
-            runtimeCfg?.email
-        );
-
-        mergedCfg.ecoflow.password = firstNonEmpty(
-            mergedCfg.ecoflow.password,
-            nativeCfg?.ecoflow?.password,
-            nativeCfg?.['ecoflow.password'],
-            nativeCfg?.efPassword,
-            nativeCfg?.password,
-            runtimeCfg?.ecoflow?.password,
-            runtimeCfg?.['ecoflow.password'],
-            runtimeCfg?.efPassword,
-            runtimeCfg?.password
-        );
-
-        const toBooleanOrUndefined = value => {
-            if (value === undefined || value === null || value === '') return undefined;
-            if (typeof value === 'boolean') return value;
-            const text = String(value).trim().toLowerCase();
-            if (text === 'true' || text === '1' || text === 'on' || text === 'yes') return true;
-            if (text === 'false' || text === '0' || text === 'off' || text === 'no') return false;
-            return undefined;
-        };
-
-        const enabledValue = [
-            mergedCfg?.ecoflow?.enabled,
-            nativeCfg?.ecoflow?.enabled,
-            nativeCfg?.['ecoflow.enabled'],
-            nativeCfg?.efEnabled,
-            runtimeCfg?.ecoflow?.enabled,
-            runtimeCfg?.['ecoflow.enabled'],
-            runtimeCfg?.efEnabled
-        ]
-            .map(toBooleanOrUndefined)
-            .find(value => value !== undefined);
-        if (enabledValue !== undefined) {
-            mergedCfg.ecoflow.enabled = enabledValue;
-        }
-
-        const toNumberOrUndefined = value => {
-            if (value === undefined || value === null || value === '') return undefined;
-            const numberValue = Number(value);
-            return Number.isFinite(numberValue) ? numberValue : undefined;
-        };
-
-        const reconnectValue = [
-            mergedCfg?.ecoflow?.reconnectMin,
-            nativeCfg?.ecoflow?.reconnectMin,
-            nativeCfg?.['ecoflow.reconnectMin'],
-            nativeCfg?.efReconnectMin,
-            runtimeCfg?.ecoflow?.reconnectMin,
-            runtimeCfg?.['ecoflow.reconnectMin'],
-            runtimeCfg?.efReconnectMin
-        ]
-            .map(toNumberOrUndefined)
-            .find(value => value !== undefined);
-        if (reconnectValue !== undefined) {
-            mergedCfg.ecoflow.reconnectMin = reconnectValue;
-        }
-
-        mergedCfg.ecoflow.legacyScriptImport = firstNonEmpty(
-            mergedCfg?.ecoflow?.legacyScriptImport,
-            nativeCfg?.ecoflow?.legacyScriptImport,
-            nativeCfg?.['ecoflow.legacyScriptImport'],
-            nativeCfg?.efLegacyScriptImport,
-            runtimeCfg?.ecoflow?.legacyScriptImport,
-            runtimeCfg?.['ecoflow.legacyScriptImport'],
-            runtimeCfg?.efLegacyScriptImport
-        );
-
-        const normalizeDevicesArray = value => {
-            if (Array.isArray(value)) return value;
-            if (typeof value === 'string' && value.trim()) {
-                try {
-                    const parsed = JSON.parse(value);
-                    if (Array.isArray(parsed)) return parsed;
-                } catch (_) {
-                    // ignore parse errors
-                }
-            }
-            return null;
-        };
-
-        const candidateDevices = [
-            nativeCfg?.efDevices,
-            runtimeCfg?.efDevices,
-            mergedCfg?.ecoflow?.devices,
-            nativeCfg?.ecoflow?.devices,
-            nativeCfg?.['ecoflow.devices'],
-            runtimeCfg?.ecoflow?.devices,
-            runtimeCfg?.['ecoflow.devices']
-        ];
-
-        let resolvedDevices = null;
-        let firstEmptyArray = null;
-        for (const candidate of candidateDevices) {
-            const normalized = normalizeDevicesArray(candidate);
-            if (!normalized) continue;
-            if (normalized.length > 0) {
-                resolvedDevices = normalized;
-                break;
-            }
-            if (!firstEmptyArray) {
-                firstEmptyArray = normalized;
+        const instanceObj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+        const stored = instanceObj ? this._decryptStoredNative(instanceObj.native) : {};
+        const nativeCfg = this._normalizeConfig(stored);
+        const cfg = this._deepMerge(this._getDefaultNativeConfig(), this._deepMerge(runtimeCfg, nativeCfg));
+        cfg.regulation.smartmeterStateId = this._normalizeStateIdInput(cfg.regulation.smartmeterStateId);
+        if (instanceObj) {
+            const canonical = this._plainNativeConfig(cfg);
+            const plaintextSecrets = ioPackage.encryptedNative.some(key =>
+                instanceObj.native?.[key] && !instanceObj.native[key].startsWith('$/aes-192-cbc:'));
+            if (!isDeepStrictEqual(stored, canonical) || plaintextSecrets) {
+                this.log.info('Migrating legacy settings and encrypting credentials; adapter will restart.');
+                this._restartRequestedByAutoImport = true;
+                await this._saveNativeConfig(instanceObj, cfg);
             }
         }
-        const chosenDevices = resolvedDevices || firstEmptyArray || [];
-        mergedCfg.ecoflow.devices = JSON.parse(JSON.stringify(chosenDevices));
-
-        // Keep ef* mirrors in sync so Admin tab displays values reliably
-        mergedCfg.efEmail = mergedCfg.ecoflow.email || '';
-        mergedCfg.efPassword = mergedCfg.ecoflow.password || '';
-        mergedCfg.efReconnectMin = mergedCfg.ecoflow.reconnectMin !== undefined ? mergedCfg.ecoflow.reconnectMin : 30;
-        mergedCfg.efEnabled = !!mergedCfg.ecoflow.enabled;
-        mergedCfg.efDevices = JSON.parse(JSON.stringify(mergedCfg.ecoflow.devices || []));
-
-        mergedCfg.regulation.smartmeterStateId = await this._resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg);
-
-        return mergedCfg;
+        return cfg;
     }
 
     _normalizeStateIdInput(value) {
@@ -969,56 +831,39 @@ class EcoflowPowerControl extends utils.Adapter {
         return text;
     }
 
-    async _resolveBestSmartmeterStateId(runtimeCfg, nativeCfg, mergedCfg) {
-        // NOTE: ioBroker may store the value under the element key (regSmStateId)
-        // instead of the attr path (regulation.smartmeterStateId) depending on admin version.
-        const runtimeValue = this._normalizeStateIdInput(
-            runtimeCfg?.regulation?.smartmeterStateId ||
-            runtimeCfg?.['regulation.smartmeterStateId'] ||
-            runtimeCfg?.regSmStateId ||
-            ''
-        );
-        const nativeValue = this._normalizeStateIdInput(
-            nativeCfg?.regulation?.smartmeterStateId ||
-            nativeCfg?.['regulation.smartmeterStateId'] ||
-            nativeCfg?.regSmStateId ||
-            ''
-        );
-        const mergedValue = this._normalizeStateIdInput(
-            mergedCfg?.regulation?.smartmeterStateId ||
-            mergedCfg?.regSmStateId ||
-            ''
-        );
-
-        this.log.info(`Smartmeter strict-config sources: runtime='${runtimeValue}' native='${nativeValue}' merged='${mergedValue}'`);
-
-        const selected = runtimeValue || nativeValue || mergedValue || '';
-
-        if (selected) {
-            this.log.info(`Smartmeter strict-config selected: ${selected}`);
-        } else {
-            this.log.warn('Smartmeter strict-config selected: empty (field regulation.smartmeterStateId).');
-        }
-        return selected;
-    }
-
     async _startEcoflowMqttNonBlocking() {
         if (!this.ecoflowMqtt) return;
 
         const startupTimeoutMs = 12000;
+        let timeout;
         try {
             await Promise.race([
                 this.ecoflowMqtt.start(),
-                new Promise(resolve => setTimeout(resolve, startupTimeoutMs))
+                new Promise(resolve => { timeout = setTimeout(resolve, startupTimeoutMs); })
             ]);
             this.log.info('EcoFlow MQTT startup phase finished (adapter continues).');
         } catch (err) {
             this.log.warn(`EcoFlow MQTT startup returned error (adapter continues): ${err.message}`);
+        } finally {
+            clearTimeout(timeout);
         }
     }
 
     _normalizeConfig(rawCfg) {
         const cfg = JSON.parse(JSON.stringify(rawCfg || {}));
+
+        cfg.ecoflow = cfg.ecoflow || {};
+        if (!cfg.ecoflow.email && rawCfg?.email) cfg.ecoflow.email = rawCfg.email;
+        if (!cfg.ecoflow.password && rawCfg?.password) cfg.ecoflow.password = rawCfg.password;
+
+        for (const [key, configPath] of Object.entries(LEGACY_PATHS)) {
+            if (!Object.prototype.hasOwnProperty.call(rawCfg || {}, key)) continue;
+            const value = rawCfg[key];
+            // Old package defaults included empty credential/device mirrors.
+            if ((key === 'efPassword' || key === 'efLegacyScriptImport' || key === 'efEmail') && value === '') continue;
+            if (key === 'efDevices' && Array.isArray(value) && value.length === 0) continue;
+            this._setByPath(cfg, configPath, value, true);
+        }
 
         for (const [key, value] of Object.entries(rawCfg || {})) {
             if (!key.includes('.')) continue;
@@ -1138,10 +983,15 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     async _subscribeOwnStatesSafe(stateIds, timeoutMs = 12000) {
-        const subscribeWithTimeout = stateId => Promise.race([
-            this.subscribeStatesAsync(stateId),
-            new Promise((_, reject) => setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs))
-        ]);
+        const subscribeWithTimeout = async stateId => {
+            let timeout;
+            try {
+                await Promise.race([
+                    this.subscribeStatesAsync(stateId),
+                    new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs); })
+                ]);
+            } finally { clearTimeout(timeout); }
+        };
 
         for (const stateId of stateIds || []) {
             try {
@@ -1227,7 +1077,7 @@ class EcoflowPowerControl extends utils.Adapter {
             }
 
             const email = String(payload.email || this.config.ecoflow?.email || '').trim();
-            const password = String(payload.password || this.config.ecoflow?.password || '').trim();
+            const password = String(payload.password ?? this.config.ecoflow?.password ?? '');
             const reconnectMin = Number(payload.reconnectMin || this.config.ecoflow?.reconnectMin || 30) || 30;
 
             if (!email || !password) {
@@ -1279,8 +1129,8 @@ class EcoflowPowerControl extends utils.Adapter {
                 throw new Error(`Instance object not found: ${instanceObjectId}`);
             }
 
-            instanceObj.native = this._deepMerge(instanceObj.native || {}, patch);
-            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
+            await this._saveNativeConfig(instanceObj, this._deepMerge(
+                this._normalizeConfig(this._decryptStoredNative(instanceObj.native)), patch));
 
             const importedDevices = Array.isArray(instanceObj.native?.ecoflow?.devices) ? instanceObj.native.ecoflow.devices.length : 0;
             const importedInverters = Array.isArray(instanceObj.native?.inverters) ? instanceObj.native.inverters.length : 0;
@@ -1422,20 +1272,10 @@ class EcoflowPowerControl extends utils.Adapter {
                 throw new Error(`Instance object not found: ${instanceObjectId}`);
             }
 
-            instanceObj.native = this._deepMerge(instanceObj.native || {}, patch);
-            // Also clear the paste field in the saved object
-            if (instanceObj.native.ecoflow) {
-                instanceObj.native.ecoflow.legacyScriptImport = '';
-            }
-            instanceObj.native['ecoflow.legacyScriptImport'] = '';
-            instanceObj.native.efLegacyScriptImport = '';
-            instanceObj.native.efEmail = String(instanceObj.native?.ecoflow?.email || '');
-            instanceObj.native.efPassword = String(instanceObj.native?.ecoflow?.password || '');
-            instanceObj.native.efReconnectMin = Number(instanceObj.native?.ecoflow?.reconnectMin || 30) || 30;
-            instanceObj.native.efEnabled = !!instanceObj.native?.ecoflow?.enabled;
-            instanceObj.native.efDevices = Array.isArray(instanceObj.native?.ecoflow?.devices)
-                ? JSON.parse(JSON.stringify(instanceObj.native.ecoflow.devices))
-                : [];
+            const importedNative = this._deepMerge(
+                this._normalizeConfig(this._decryptStoredNative(instanceObj.native)), patch);
+            importedNative.ecoflow.legacyScriptImport = '';
+            importedNative.efLegacyScriptImport = '';
 
             const importedDevices = Array.isArray(instanceObj.native?.ecoflow?.devices) ? instanceObj.native.ecoflow.devices.length : 0;
             const importedInverters = Array.isArray(instanceObj.native?.inverters) ? instanceObj.native.inverters.length : 0;
@@ -1445,12 +1285,12 @@ class EcoflowPowerControl extends utils.Adapter {
             this.log.warn('Saving imported config and restarting adapter...');
 
             this._restartRequestedByAutoImport = true;
-            await this.setForeignObjectAsync(instanceObjectId, instanceObj);
+            await this._saveNativeConfig(instanceObj, importedNative);
 
             // setForeignObjectAsync triggers an automatic adapter restart.
             // Return the merged config so the current startup cycle can continue
             // (although the restart will overwrite it shortly).
-            return instanceObj.native;
+            return importedNative;
         } catch (err) {
             this.log.error(`Auto-import of legacy script failed: ${err.message}`);
             this.log.error('Please check the pasted script content. The adapter continues with current config.');
@@ -1459,30 +1299,7 @@ class EcoflowPowerControl extends utils.Adapter {
     }
 
     _getDefaultNativeConfig() {
-        const defaults = JSON.parse(JSON.stringify(ioPackage?.native || {}));
-        defaults.efEnabled = false;
-        defaults.efEmail = '';
-        defaults.efPassword = '';
-        defaults.efReconnectMin = 30;
-        defaults.efDevices = [];
-        defaults.efLegacyScriptImport = '';
-        // Reset legacy flat-key fields that ioBroker Admin stores separately
-        defaults.regSmStateId = '';
-        defaults.regSmTimeoutMin = 4;
-        defaults.regSmFallback = 150;
-        defaults.regIntervalSec = 15;
-        defaults.regBasePowerOffset = 30;
-        defaults.regMinValueMin = 2;
-        defaults.regMinValueAg = 0;
-        defaults.regZusatzpowerOffset = 10;
-        defaults.regMultiPsMode = 0;
-        defaults.regSerialReverse = false;
-        defaults.regHistoryAdapter = 'history';
-        defaults.regHistoryInstance = '0';
-        if (defaults.regulation && typeof defaults.regulation === 'object') {
-            defaults.regulation.smartmeterStateId = '';
-        }
-        return defaults;
+        return JSON.parse(JSON.stringify(ioPackage.native));
     }
 
     // ──────────────────────────────────────────────────────────── object creation
@@ -1525,14 +1342,15 @@ class EcoflowPowerControl extends utils.Adapter {
 
     // ──────────────────────────────────────────────────────────── foreign subscriptions
 
-    async _subscribeForeignStates(cfg) {
+    async _subscribeConfiguredStates(cfg) {
         const subscribeWithTimeout = async (id, timeoutMs = 12000) => {
-            return Promise.race([
-                this.subscribeForeignStatesAsync(id),
-                new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs);
-                })
-            ]);
+            let timeout;
+            try {
+                await Promise.race([
+                    this.subscribeForeignStatesAsync(id),
+                    new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error(`timeout after ${timeoutMs}ms`)), timeoutMs); })
+                ]);
+            } finally { clearTimeout(timeout); }
         };
 
         const subscribe = async id => {

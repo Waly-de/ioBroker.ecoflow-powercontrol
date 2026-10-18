@@ -1,6 +1,6 @@
 {
   "name": "iobroker.ecoflow-powercontrol",
-  "version": "0.1.48",
+  "version": "0.1.49",
   "description": "ioBroker adapter for generic solar inverter power regulation with optional EcoFlow MQTT bridge",
   "author": {
     "name": "Markus Walber",
@@ -23,15 +23,35 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "start": "node main.js"
+    "start": "node main.js",
+    "test": "node --test test/*.test.js",
+    "test:integration": "mocha --exit --timeout 120000 test/integration.js",
+    "check": "node --check main.js && node --check lib/config.js && node --check lib/regulation.js && node --check lib/ecoflow-mqtt.js && node --check lib/state-manager.js && node --check lib/protobuf-definitions.js"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.1.6",
-    "axios": "^1.7.2",
     "mqtt": "^5.7.3",
     "protobufjs": "^7.3.2"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0"
-  }
+    "@types/node": "^20.0.0",
+    "@iobroker/testing": "^5.3.0",
+    "mocha": "^11.7.5",
+    "aedes": "^0.51.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Waly-de/ioBroker.ecoflow-powercontrol.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Waly-de/ioBroker.ecoflow-powercontrol/issues"
+  },
+  "files": [
+    "main.js",
+    "lib/",
+    "admin/",
+    "io-package.json",
+    "README.md",
+    "LICENSE"
+  ]
 }
