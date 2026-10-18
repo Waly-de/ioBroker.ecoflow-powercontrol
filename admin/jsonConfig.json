@@ -12,7 +12,6 @@
         },
         "inverters": {
           "type": "table",
-          "attr": "inverters",
           "label": "inverters",
           "noDelete": false,
           "noAdd": false,
@@ -34,8 +33,14 @@
               "type": "select",
               "title": "col_inv_type",
               "options": [
-                { "value": "generic", "label": "Generic" },
-                { "value": "ecoflow", "label": "EcoFlow PS" }
+                {
+                  "value": "generic",
+                  "label": "Generic"
+                },
+                {
+                  "value": "ecoflow",
+                  "label": "EcoFlow PS"
+                }
               ],
               "width": "120px",
               "default": "generic"
@@ -166,8 +171,14 @@
               "type": "select",
               "title": "col_inv_type",
               "options": [
-                { "value": "generic", "label": "Generic" },
-                { "value": "ecoflow", "label": "EcoFlow PS" }
+                {
+                  "value": "generic",
+                  "label": "Generic"
+                },
+                {
+                  "value": "ecoflow",
+                  "label": "EcoFlow PS"
+                }
               ],
               "width": "120px",
               "default": "generic"
@@ -287,7 +298,6 @@
         },
         "additionalPower": {
           "type": "table",
-          "attr": "additionalPower",
           "label": "additionalpower_label",
           "noDelete": false,
           "noAdd": false,
@@ -380,10 +390,9 @@
           "type": "staticText",
           "text": "ec_header"
         },
-        "ecEnabled": {
+        "excessCharge.enabled": {
           "type": "checkbox",
           "label": "ec_enabled",
-          "attr": "excessCharge.enabled",
           "default": false
         },
         "ecPanel": {
@@ -391,96 +400,80 @@
           "label": "ec_panel_label",
           "hidden": "!data.excessCharge.enabled",
           "items": {
-            "ecPowerStateId": {
+            "excessCharge.powerStateId": {
               "type": "text",
-              "label": "ec_powerstateid",
-              "attr": "excessCharge.powerStateId"
+              "label": "ec_powerstateid"
             },
-            "ecBatSocStateId": {
+            "excessCharge.batSocStateId": {
               "type": "text",
-              "label": "ec_batsocstateid",
-              "attr": "excessCharge.batSocStateId"
+              "label": "ec_batsocstateid"
             },
-            "ecActualPowerStateId": {
+            "excessCharge.actualPowerStateId": {
               "type": "text",
-              "label": "ec_actualpowerstateid",
-              "attr": "excessCharge.actualPowerStateId"
+              "label": "ec_actualpowerstateid"
             },
-            "ecSwitchStateId": {
+            "excessCharge.switchStateId": {
               "type": "text",
-              "label": "ec_switchstateid",
-              "attr": "excessCharge.switchStateId"
+              "label": "ec_switchstateid"
             },
-            "ecSwitchOnValue": {
+            "excessCharge.switchOnValue": {
               "type": "text",
               "label": "ec_switchonvalue",
-              "attr": "excessCharge.switchOnValue",
               "default": "true"
             },
-            "ecSwitchOffValue": {
+            "excessCharge.switchOffValue": {
               "type": "text",
               "label": "ec_switchoffvalue",
-              "attr": "excessCharge.switchOffValue",
               "default": "false"
             },
-            "ecMaxPower": {
+            "excessCharge.maxPower": {
               "type": "number",
               "label": "ec_maxpower",
-              "attr": "excessCharge.maxPower",
               "default": 2000
             },
-            "ecOffsetPower": {
+            "excessCharge.offsetPower": {
               "type": "number",
               "label": "ec_offsetpower",
-              "attr": "excessCharge.offsetPower",
               "default": 0
             },
-            "ecStartPower": {
+            "excessCharge.startPower": {
               "type": "number",
               "label": "ec_startpower",
-              "attr": "excessCharge.startPower",
               "default": 50
             },
-            "ecStopPower": {
+            "excessCharge.stopPower": {
               "type": "number",
               "label": "ec_stoppower",
-              "attr": "excessCharge.stopPower",
               "default": 0
             },
-            "ecStartDurationMin": {
+            "excessCharge.startDurationMin": {
               "type": "number",
               "label": "ec_startdurationmin",
-              "attr": "excessCharge.startDurationMin",
               "default": 1
             },
-            "ecMinRegulatePauseMin": {
+            "excessCharge.minRegulatePauseMin": {
               "type": "number",
               "label": "ec_minregulatepausemin",
-              "attr": "excessCharge.minRegulatePauseMin",
               "default": 1
             },
-            "ecRegulateSteps": {
+            "excessCharge.regulateSteps": {
               "type": "number",
               "label": "ec_regulatesteps",
-              "attr": "excessCharge.regulateSteps",
               "default": 100
             },
-            "ecBatSocMax": {
+            "excessCharge.batSocMax": {
               "type": "number",
               "label": "ec_batsocmax",
-              "attr": "excessCharge.batSocMax",
               "default": 95
             },
-            "ecBatSocOff": {
+            "excessCharge.batSocOff": {
               "type": "number",
               "label": "ec_batsocoff",
-              "attr": "excessCharge.batSocOff",
               "default": 100
             },
-            "ecSwitchMinMin": {
+            "excessCharge.switchMinMin": {
               "type": "number",
               "label": "ec_switchminmin",
-              "attr": "excessCharge.switchMinMin",
               "default": 5
             }
           }
@@ -495,37 +488,33 @@
           "type": "staticText",
           "text": "ecoflow_intro"
         },
-        "efEnabled": {
+        "ecoflow.enabled": {
           "type": "checkbox",
           "label": "ecoflow_enabled",
-          "attr": "ecoflow.enabled",
           "default": false
         },
         "efCredentialsHeader": {
           "type": "staticText",
           "text": "ecoflow_credentials"
         },
-        "efEmail": {
+        "ecoflow.email": {
           "type": "text",
-          "label": "ecoflow_email",
-          "attr": "ecoflow.email"
+          "label": "ecoflow_email"
         },
         "efPassword": {
           "type": "password",
           "label": "ecoflow_password",
-          "attr": "ecoflow.password"
+          "trim": false
         },
-        "efReconnectMin": {
+        "ecoflow.reconnectMin": {
           "type": "number",
           "label": "ecoflow_reconnectmin",
-          "attr": "ecoflow.reconnectMin",
           "default": 30
         },
         "efTestConnection": {
           "type": "sendTo",
           "label": "ecoflow_test_connection",
           "command": "testEcoflowConnection",
-          "jsonData": "{\"email\":\"${data.ecoflow.email}\",\"password\":\"${data.ecoflow.password}\",\"reconnectMin\":\"${data.ecoflow.reconnectMin}\"}",
           "showProcess": true,
           "result": {
             "test_ok": "ecoflow_test_success"
@@ -534,7 +523,12 @@
             "test_err": "ecoflow_test_error"
           },
           "variant": "contained",
-          "okText": "ecoflow_test_ok"
+          "okText": "ecoflow_test_ok",
+          "data": {
+            "email": "${data.ecoflow.email}",
+            "password": "${data.efPassword}",
+            "reconnectMin": "${data.ecoflow.reconnectMin}"
+          }
         },
         "efTestHint": {
           "type": "staticText",
@@ -547,7 +541,6 @@
         "efLegacyScriptImport": {
           "type": "text",
           "label": "ecoflow_import_paste",
-          "attr": "ecoflow.legacyScriptImport",
           "minRows": 8,
           "maxRows": 20
         },
@@ -556,7 +549,7 @@
           "label": "ecoflow_import_button",
           "command": "importOldScriptSettings",
           "data": {
-            "script": "${data.ecoflow.legacyScriptImport}"
+            "script": "${data.efLegacyScriptImport}"
           },
           "showProcess": true,
           "result": {
@@ -566,7 +559,8 @@
             "import_err": "ecoflow_import_error"
           },
           "variant": "contained",
-          "okText": "ecoflow_import_ok"
+          "okText": "ecoflow_import_ok",
+          "useNative": true
         },
         "efResetAll": {
           "type": "sendTo",
@@ -604,9 +598,8 @@
           "type": "staticText",
           "text": "ecoflow_devices_header"
         },
-        "efDevices": {
+        "ecoflow.devices": {
           "type": "table",
-          "attr": "ecoflow.devices",
           "label": "ecoflow_devices",
           "noDelete": false,
           "noAdd": false,
@@ -629,11 +622,26 @@
               "type": "select",
               "title": "col_ef_typ",
               "options": [
-                { "value": "PS", "label": "PowerStream (PS)" },
-                { "value": "DM", "label": "DELTA Max (DM)" },
-                { "value": "D2", "label": "DELTA 2 (D2)" },
-                { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
-                { "value": "SM", "label": "Smart Plug (SM)" }
+                {
+                  "value": "PS",
+                  "label": "PowerStream (PS)"
+                },
+                {
+                  "value": "DM",
+                  "label": "DELTA Max (DM)"
+                },
+                {
+                  "value": "D2",
+                  "label": "DELTA 2 (D2)"
+                },
+                {
+                  "value": "D2M",
+                  "label": "DELTA 2 Max (D2M)"
+                },
+                {
+                  "value": "SM",
+                  "label": "Smart Plug (SM)"
+                }
               ],
               "width": "180px",
               "default": "PS"
@@ -665,11 +673,26 @@
               "type": "select",
               "title": "col_ef_typ",
               "options": [
-                { "value": "PS", "label": "PowerStream (PS)" },
-                { "value": "DM", "label": "DELTA Max (DM)" },
-                { "value": "D2", "label": "DELTA 2 (D2)" },
-                { "value": "D2M", "label": "DELTA 2 Max (D2M)" },
-                { "value": "SM", "label": "Smart Plug (SM)" }
+                {
+                  "value": "PS",
+                  "label": "PowerStream (PS)"
+                },
+                {
+                  "value": "DM",
+                  "label": "DELTA Max (DM)"
+                },
+                {
+                  "value": "D2",
+                  "label": "DELTA 2 (D2)"
+                },
+                {
+                  "value": "D2M",
+                  "label": "DELTA 2 Max (D2M)"
+                },
+                {
+                  "value": "SM",
+                  "label": "Smart Plug (SM)"
+                }
               ],
               "width": "180px",
               "default": "PS"
@@ -697,79 +720,81 @@
           "type": "staticText",
           "text": "reg_sm_header"
         },
-        "regSmStateId": {
+        "regulation.smartmeterStateId": {
           "type": "text",
-          "label": "reg_smartmeterstateid",
-          "attr": "regulation.smartmeterStateId"
+          "label": "reg_smartmeterstateid"
         },
-        "regSmTimeoutMin": {
+        "regulation.smartmeterTimeoutMin": {
           "type": "number",
           "label": "reg_smartmetertimeoutmin",
-          "attr": "regulation.smartmeterTimeoutMin",
           "default": 4
         },
-        "regSmFallback": {
+        "regulation.smartmeterFallbackPower": {
           "type": "number",
           "label": "reg_smartmeterfallbackpower",
-          "attr": "regulation.smartmeterFallbackPower",
           "default": 150
         },
         "regLoopHeader": {
           "type": "staticText",
           "text": "reg_loop_header"
         },
-        "regIntervalSec": {
+        "regulation.intervalSec": {
           "type": "number",
           "label": "reg_intervalsec",
-          "attr": "regulation.intervalSec",
           "default": 15
         },
-        "regBasePowerOffset": {
+        "regulation.basePowerOffset": {
           "type": "number",
           "label": "reg_basepoweroffset",
-          "attr": "regulation.basePowerOffset",
           "default": 30
         },
-        "regMinValueMin": {
+        "regulation.minValueMin": {
           "type": "number",
           "label": "reg_minvaluemin",
-          "attr": "regulation.minValueMin",
           "default": 2
         },
-        "regMinValueAg": {
+        "regulation.minValueAg": {
           "type": "select",
           "label": "reg_minvalueag",
-          "attr": "regulation.minValueAg",
           "options": [
-            { "value": 0, "label": "reg_minvalueag_min" },
-            { "value": 1, "label": "reg_minvalueag_avg" }
+            {
+              "value": 0,
+              "label": "reg_minvalueag_min"
+            },
+            {
+              "value": 1,
+              "label": "reg_minvalueag_avg"
+            }
           ],
           "default": 0
         },
-        "regZusatzpowerOffset": {
+        "regulation.zusatzpowerOffset": {
           "type": "number",
           "label": "reg_zusatzpoweroffset",
-          "attr": "regulation.zusatzpowerOffset",
           "default": 10
         },
         "regMultiHeader": {
           "type": "staticText",
           "text": "reg_multiinv_header"
         },
-        "regMultiPsMode": {
+        "regulation.multiPsMode": {
           "type": "select",
           "label": "reg_multipsmode",
-          "attr": "regulation.multiPsMode",
           "options": [
-            { "value": 0, "label": "reg_multipsmode_balance" },
-            { "value": 1, "label": "reg_multipsmode_serial" }
+            {
+              "value": 0,
+              "label": "reg_multipsmode_balance"
+            },
+            {
+              "value": 1,
+              "label": "reg_multipsmode_serial"
+            }
           ],
           "default": 0
         },
-        "regSerialReverse": {
+        "regulation.serialReverse": {
           "type": "checkbox",
           "label": "reg_serialreverse",
-          "attr": "regulation.serialReverse",
           "default": false,
           "hidden": "data.regulation.multiPsMode != 1"
         },
@@ -777,21 +802,28 @@
           "type": "staticText",
           "text": "reg_history_header"
         },
-        "regHistoryAdapter": {
+        "regulation.historyAdapter": {
           "type": "select",
           "label": "reg_historyadapter",
-          "attr": "regulation.historyAdapter",
           "options": [
-            { "value": "history",  "label": "ioBroker History" },
-            { "value": "influxdb", "label": "InfluxDB" },
-            { "value": "sql",      "label": "SQL" }
+            {
+              "value": "history",
+              "label": "ioBroker History"
+            },
+            {
+              "value": "influxdb",
+              "label": "InfluxDB"
+            },
+            {
+              "value": "sql",
+              "label": "SQL"
+            }
           ],
           "default": "history"
         },
-        "regHistoryInstance": {
+        "regulation.historyInstance": {
           "type": "text",
           "label": "reg_historyinstance",
-          "attr": "regulation.historyInstance",
           "default": "0"
         }
       }
@@ -804,22 +836,19 @@
           "type": "staticText",
           "text": "debug_header"
         },
-        "advDebug": {
+        "advanced.debug": {
           "type": "checkbox",
           "label": "advanced_debug",
-          "attr": "advanced.debug",
           "default": false
         },
-        "advMlog": {
+        "advanced.mlog": {
           "type": "checkbox",
           "label": "advanced_mlog",
-          "attr": "advanced.mlog",
           "default": false
         },
-        "advAvgPeriodMs": {
+        "advanced.avgPeriodMs": {
           "type": "number",
           "label": "advanced_avgperiodms",
-          "attr": "advanced.avgPeriodMs",
           "default": 15000
         },
         "infoLinks": {

@@ -6,6 +6,12 @@ Dieser Adapter regelt die Einspeiseleistung von Wechselrichtern auf Basis eines 
 
 ---
 
+## Unterstützte Geräte und Update auf 0.1.49
+
+Die integrierte EcoFlow-Anbindung unterstützt den klassischen **PowerStream**, nicht die neue **STREAM-Serie (STREAM Pro/Ultra/AC Pro)**. Ein erfolgreicher Verbindungstest bestätigt Anmeldung und Brokerzugang, nicht die Unterstützung des Geräteprotokolls. Generische Wechselrichter werden über ihre konfigurierten ioBroker-States in Watt gesteuert.
+
+Beim ersten Start werden alte Admin-Feldnamen automatisch übernommen. Passwort und eingefügter Importtext werden in geschützte, verschlüsselte Konfigurationsfelder migriert; dabei kann die Instanz neu starten. Vor dem Update die Instanzeinstellungen sichern. Das explizite Abschalten von EcoFlow MQTT wird jetzt respektiert. Nach einem Altskriptimport die Zuordnung und Werte prüfen, bevor die Regelung eingeschaltet wird. Bereits vorhandene ältere Logdateien können noch Zugangsdaten enthalten; diese nicht ungeprüft veröffentlichen.
+
 ## Installation
 
 ### Über GitHub-URL (empfohlen)
@@ -36,7 +42,7 @@ Für jeden Wechselrichter werden State-IDs konfiguriert:
 | **PV-Leistungs-State** | PV-Eingangsleistung in W |
 | **Prioritäts-State** | Für Batterie-Prioritätsmodus (0/1) |
 
-**EcoFlow-Typ:** Der Wert wird automatisch ×10 umgerechnet (EcoFlow-Protokoll). Nach der ersten MQTT-Verbindung werden States unter `ecoflow-powercontrol.0.ecoflow.*` angelegt – diese können direkt als State-IDs eingetragen werden.
+**EcoFlow-Typ:** Der Wert wird automatisch ×10 umgerechnet (EcoFlow-Protokoll). Für den klassischen PowerStream werden leere Messwertfelder automatisch zugeordnet; ohne expliziten PV-State werden PV1 und PV2 addiert. Nach der ersten MQTT-Verbindung werden States unter `ecoflow-powercontrol.0.ecoflow.*` angelegt – diese können direkt als State-IDs eingetragen werden.
 
 **Typische EcoFlow PowerStream State-Pfade** (nach MQTT-Verbindung):
 - Ausgang: `ecoflow-powercontrol.0.ecoflow.app_device_property_SERIENNR.data.InverterHeartbeat.invOutputWatts`
@@ -134,3 +140,19 @@ MIT License – siehe [LICENSE](LICENSE)
 ## Autor
 
 Markus Walber <markus@walber.de>
+
+
+## Entwicklung und Prüfung
+
+```sh
+npm ci --ignore-scripts
+npm run check
+npm test
+npm run test:integration
+```
+
+Die Regressionstests verwenden synthetische Daten und einen lokalen MQTT-Broker auf `127.0.0.1`. Der offizielle ioBroker-Testharness installiert einen separaten Controller in einem temporären Verzeichnis und verwendet eigene lokale Datenbankports. Es werden keine echten EcoFlow-Zugangsdaten oder Geräte benötigt. Der Controller-Test prüft Start/Stopp, synthetische Regelung und manuelles Ausschalten. CI führt diese Prüfungen bei Push und Pull Request aus.
+
+History ist bei Zeitfenster `0` vollständig optional. Bei einer ausbleibenden Historyantwort wird nach fünf Sekunden der aktuelle berechnete Verbrauch verwendet. Ein laufender Regelzyklus wird nicht parallel erneut gestartet; manuelles Ausschalten gewinnt vor weiteren Leistungsbefehlen. Die Leistungsgrenze wird vor der gerätespezifischen Einheitenumrechnung angewendet.
+
+Die Tests ersetzen keine Abnahme mit einer realen EcoFlow-Anlage. Brokerbestätigung ist keine Bestätigung, dass das Gerät den Sollwert tatsächlich umgesetzt hat.
