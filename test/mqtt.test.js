@@ -101,3 +101,15 @@ test('real TLS handshake rejects a self-signed broker certificate', async t => {
     m.mqttDaten = { protocol: 'mqtts', URL: '127.0.0.1', Port: server.address().port, clientID: 'SYNTHETIC-TLS' };
     await assert.rejects(m._probeMqttCandidate(m._getMqttCandidates()[0], 2000), /self.signed/i);
 });
+
+test('device subscription waits for SUBACK and reports denied subscriptions', async () => {
+    const a = fixture(); a.config.ecoflow.devices = [{ serial: 'TEST', typ: 'PS', subscribe: true }];
+    const m = new EcoflowMqtt(a); let reply;
+    m.client = { subscribe: (_topics, callback) => { reply = callback; } };
+    let finished = false;
+    const pending = m._subscribeDevices().then(() => { finished = true; });
+    assert.equal(finished, false); reply(null, [{ qos: 0 }]); await pending;
+    assert.equal(finished, true);
+    m.client.subscribe = (_topics, callback) => callback(null, [{ qos: 128 }]);
+    await assert.rejects(m._subscribeDevices(), /rejected/);
+});
