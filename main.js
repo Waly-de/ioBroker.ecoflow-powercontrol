@@ -269,10 +269,15 @@ class EcoflowPowerControl extends utils.Adapter {
             await this.setStateAsync('regulation.enabled', enabled, true);
             if (this.regulation) {
                 this.regulation.regulationEnabled = enabled;
-                if (!enabled) {
-                    await this.regulation.handleDisabled();
-                } else {
-                    await this.regulation.handleEnabled();
+                try {
+                    if (!enabled) {
+                        await this.regulation.handleDisabled();
+                    } else {
+                        await this.regulation.handleEnabled();
+                    }
+                } catch (err) {
+                    // Never let a device error escape the event handler (unhandled rejection).
+                    this.log.error(`Regulation ${enabled ? 'enable' : 'disable'} handling failed: ${err.message}`);
                 }
             }
             return;
