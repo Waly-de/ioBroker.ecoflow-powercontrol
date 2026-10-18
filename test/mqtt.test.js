@@ -6,6 +6,7 @@ const net = require('node:net');
 const aedes = require('aedes');
 const protobuf = require('protobufjs');
 const EcoflowMqtt = require('../lib/ecoflow-mqtt');
+const Regulation = require('../lib/regulation');
 const { StateManager } = require('../lib/state-manager');
 const { PROTO_SOURCE_V2 } = require('../lib/protobuf-definitions');
 const { fixture } = require('./helpers');
@@ -81,6 +82,25 @@ test('real local broker: subscribe, decode protobuf, command, disconnect and rec
         const decoded = Message.decode(packet.payload).header[0];
         return decoded.cmdId === 129 && m.protoRoot.lookupType('setValue').decode(decoded.pdata).value === 1000;
     }));
+    // The real transport must not receive an automatic target from old telemetry.
+    Object.assign(a.config.inverters[0], { type: 'ecoflow', hasBat: false,
+        outputStateId: '', batterySOCStateId: '', pvPowerStateId: '' });
+    a.config.regulation.minValueMin = 0;
+    const regulation = new Regulation(a, m);
+    const outputId = `${a.namespace}.${id}`;
+    a.foreign.get(outputId).ts -= 51000;
+    const countTargets = () => received.filter(packet => Message.decode(packet.payload).header[0].cmdId === 129).length;
+    const previousTargets = countTargets();
+    await regulation.run();
+    assert.equal(countTargets(), previousTargets);
+    await new Promise((resolve, reject) => broker.publish({ topic: '/app/device/property/TEST', payload: telemetry, qos: 1 }, err => err ? reject(err) : resolve()));
+    await until(() => a.foreign.get(outputId).ts > Date.now() - 1000);
+    await regulation.run();
+    await until(() => received.some(packet => {
+        const decoded = Message.decode(packet.payload).header[0];
+        return decoded.cmdId === 129 && m.protoRoot.lookupType('setValue').decode(decoded.pdata).value === 8000;
+    }));
+    await regulation.stop();
     const previousClient = m.client;
     await new Promise(resolve => previousClient.end(true, {}, resolve)); await until(() => !m.isConnected);
     await m._connect(); await until(() => m.isConnected && m.client !== previousClient);

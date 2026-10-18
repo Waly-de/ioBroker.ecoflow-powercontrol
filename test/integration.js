@@ -37,6 +37,48 @@ tests.integration(path.join(__dirname, '..'), {
                 await h.stopAdapter();
             });
         });
+        suite('EcoFlow telemetry guard with real Objects/States DB', getHarness => {
+            it('blocks the stale no-battery target and resumes after fresh output telemetry', async function () {
+                this.timeout(90000);
+                const h = getHarness();
+                const prefix = '0_userdata.0.telemetryReview';
+                const instance = await h.objects.getObjectAsync('system.adapter.ecoflow-powercontrol.0');
+                instance.native.ecoflow.enabled = false;
+                instance.native.regulation = { ...instance.native.regulation,
+                    smartmeterStateId: `${prefix}.meter`, minValueMin: 0, intervalSec: 1, basePowerOffset: 0 };
+                instance.native.inverters = [{ id: 'SYNTHETIC', type: 'ecoflow', regulation: true,
+                    hasBat: false, maxPower: 800, outputStateId: `${prefix}.output`,
+                    setOutputStateId: `${prefix}.target`, regulationOffPower: 0 }];
+                await h.objects.setObjectAsync('system.adapter.ecoflow-powercontrol.0', instance);
+                for (const [name, value] of Object.entries({ meter: 100, output: 0, target: 77 })) {
+                    const id = `${prefix}.${name}`;
+                    await h.objects.setObjectAsync(id, { type: 'state', common: {
+                        name, type: 'number', role: 'value', read: true, write: true }, native: {} });
+                    await h.states.setStateAsync(id, { val: value, ack: true,
+                        ts: Date.now() - (name === 'output' ? 60000 : 0) });
+                }
+                const started = Date.now();
+                await h.startAdapterAndWait(false);
+                const wait = async predicate => {
+                    const deadline = Date.now() + 20000;
+                    while (!(await predicate())) {
+                        if (Date.now() > deadline) throw new Error('Telemetry guard behavior timed out');
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                };
+                await wait(async () => (await h.states.getStateAsync('ecoflow-powercontrol.0.regulation.lowestValue'))?.ts > started);
+                assert.equal((await h.states.getStateAsync(`${prefix}.target`)).val, 77, 'No 800W command without fresh output');
+                await h.states.setStateAsync(`${prefix}.output`, { val: 0, ack: true });
+                await wait(async () => (await h.states.getStateAsync(`${prefix}.target`))?.val === 8000);
+                const lastCommand = (await h.states.getStateAsync(`${prefix}.target`)).ts;
+                await h.states.setStateAsync(`${prefix}.output`, { val: 0, ack: true, ts: Date.now() - 60000 });
+                await new Promise(resolve => setTimeout(resolve, 2200));
+                assert.equal((await h.states.getStateAsync(`${prefix}.target`)).ts, lastCommand);
+                await h.states.setStateAsync(`${prefix}.output`, { val: 0, ack: true });
+                await wait(async () => (await h.states.getStateAsync(`${prefix}.target`))?.ts > lastCommand);
+                await h.stopAdapter();
+            });
+        });
         suite('Isolated regulation with real Objects/States DB', getHarness => {
             it('starts, regulates a synthetic inverter, respects manual off and shuts down', async function () {
                 this.timeout(90000);
