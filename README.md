@@ -12,6 +12,14 @@ Die integrierte EcoFlow-Anbindung unterstützt den klassischen **PowerStream**, 
 
 Beim ersten Start werden alte Admin-Feldnamen automatisch übernommen. Passwort und eingefügter Importtext werden in geschützte, verschlüsselte Konfigurationsfelder migriert; dabei kann die Instanz neu starten. Vor dem Update die Instanzeinstellungen sichern. Das explizite Abschalten von EcoFlow MQTT wird jetzt respektiert. Nach einem Altskriptimport die Zuordnung und Werte prüfen, bevor die Regelung eingeschaltet wird. Bereits vorhandene ältere Logdateien können noch Zugangsdaten enthalten; diese nicht ungeprüft veröffentlichen.
 
+## Schutz bei fehlender EcoFlow-Telemetrie (ab 0.1.50)
+
+Automatische Einspeise- und Prioritätsbefehle für einen EcoFlow-Wechselrichter benötigen gültige Ausgangsmesswerte (höchstens 50 Sekunden alt). Bei konfiguriertem Akku muss zusätzlich ein gültiger SOC-Wert vorliegen (höchstens 10 Minuten alt). Echte Nullwerte sind gültig; fehlende Werte werden nicht als 0 % behandelt. Bei fehlenden Daten pausiert die Automatik für dieses Gerät mit einer Warnung und läuft nach frischen Daten wieder an. Datenabruf, andere Wechselrichter und bewusste manuelle Befehle einschließlich der konfigurierten Leistung bei „Regelung aus“ bleiben nutzbar.
+
+Die Pause sendet keinen neuen Sollwert und bestätigt keine Geräteabschaltung: Der zuletzt am Gerät eingestellte Wert kann bestehen bleiben.
+
+Schlägt ein Befehl an einen Wechselrichter fehl (zum Beispiel bei getrennter MQTT-Verbindung), wird nur dieses Gerät übersprungen. Andere Wechselrichter, der Stopp der Überschussladung und „Regelung aus“ laufen weiter; der Befehl wird im nächsten Zyklus erneut versucht. Ein bereits eingeschalteter Überschusslader wird nach einem Neustart sofort weitergeregelt.
+
 ## Installation
 
 ### Über GitHub-URL (empfohlen)
