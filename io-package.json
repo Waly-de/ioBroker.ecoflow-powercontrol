@@ -9,8 +9,8 @@
     "version": "0.1.50",
     "news": {
       "0.1.50": {
-        "en": "Pause automatic EcoFlow inverter commands when required output or battery telemetry is missing, invalid or stale; resume after fresh measurements.",
-        "de": "Automatische EcoFlow-Wechselrichterbefehle bei fehlenden, ungültigen oder veralteten Messwerten pausiert; Fortsetzung nach frischen Daten."
+        "en": "Pause automatic EcoFlow inverter commands when required output or battery telemetry is missing, invalid or stale; resume after fresh measurements. A failing inverter command no longer aborts the whole cycle or the regulation switch-off; an already running excess charger is regulated immediately after restart.",
+        "de": "Automatische EcoFlow-Wechselrichterbefehle bei fehlenden, ungültigen oder veralteten Messwerten pausiert; Fortsetzung nach frischen Daten. Ein fehlgeschlagener Wechselrichterbefehl bricht weder den Regelzyklus noch das Ausschalten der Regelung ab; ein bereits laufender Überschusslader wird nach Neustart sofort geregelt."
       },
       "0.1.49": {
         "en": "Fix regulation units, manual stop, excess charging, history timeouts, MQTT freshness, TLS and configuration migration; add automated tests.",

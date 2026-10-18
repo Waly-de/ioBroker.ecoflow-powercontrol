@@ -18,6 +18,8 @@ Automatische Einspeise- und Prioritätsbefehle für einen EcoFlow-Wechselrichter
 
 Die Pause sendet keinen neuen Sollwert und bestätigt keine Geräteabschaltung: Der zuletzt am Gerät eingestellte Wert kann bestehen bleiben.
 
+Schlägt ein Befehl an einen Wechselrichter fehl (zum Beispiel bei getrennter MQTT-Verbindung), wird nur dieses Gerät übersprungen. Andere Wechselrichter, der Stopp der Überschussladung und „Regelung aus“ laufen weiter; der Befehl wird im nächsten Zyklus erneut versucht. Ein bereits eingeschalteter Überschusslader wird nach einem Neustart sofort weitergeregelt.
+
 ## Installation
 
 ### Über GitHub-URL (empfohlen)
